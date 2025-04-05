@@ -3,56 +3,46 @@ from pathlib import Path
 class Localizer:
     def __init__(self):
         self.localization = {}
-        self.available_locales = {
-            1: "RU",
-            2: "EN"
-        }
         self._load_localization()
 
     def _load_localization(self):
-        """Загрузка локализации"""
-        print("Available locales:")
-        for key, value in self.available_locales.items():
-            print(f"{key} - {value}")
-
+        """Загрузка локализации из файла"""
         try:
-            choice = int(input("Choose locale: "))
-            if choice not in self.available_locales:
-                raise ValueError
-        except (ValueError, KeyError):
-            print("Invalid locale choice. Defaulting to RU.")
-            choice = 1
-
-        locale_file = {
-            1: "RU.txt",
-            2: "EN.txt"
-        }.get(choice, "RU.txt")
-
-        try:
-            path = Path("files_for_the_project/localization") / locale_file
+            path = Path("files_for_the_project/localization/RU.txt")
             with open(path, 'r', encoding='utf-8') as f:
+                lines = [line.strip() for line in f.readlines() if line.strip()]
                 self.localization = {
-                    i: line.strip() for i, line in enumerate(f.readlines())
+                    int(line.split(":")[0]): ":".join(line.split(":")[1:]).strip()
+                    for line in lines
                 }
-            print("Localization loaded successfully")
         except FileNotFoundError:
-            print(f"Error: Localization file {locale_file} not found")
-            self.localization = {}
+            print("Файл локализации не найден! Используются значения по умолчанию")
+            self._load_default_strings()
         except Exception as e:
-            print(f"Error loading localization: {str(e)}")
-            self.localization = {}
+            print(f"Ошибка загрузки локализации: {str(e)}")
+            self._load_default_strings()
+
+    def _load_default_strings(self):
+        """Резервные строки"""
+        self.localization = {
+            0: "Добро пожаловать в систему анализа медицинских данных!",
+            1: "Разработчики: Соколов А.В., Кожемякин А.А., Шиханова Е.В., Чайка Н.В.",
+            2: "Главное меню",
+            5: "Выход",
+            6: "Импорт/Экспорт данных",
+            7: "Просмотр таблицы",
+            8: "Визуализация данных",
+            9: "Ошибка: введите число от 0 до 3",
+            10: "Ошибка: данные не загружены!",
+            11: "Успешно загружено записей: {}",
+            12: "Работа программы завершена",
+            13: "Спасибо за использование нашего ПО!",
+            14: "Ошибка инициализации компонентов",
+            15: "Работа прервана пользователем",
+            16: "Критическая ошибка",
+            17: "Выберите пункт меню"
+        }
 
     def get_string(self, string_id: int) -> str:
         """Получение локализованной строки"""
-        try:
-            return self.localization[string_id]
-        except KeyError:
-            return f"[Localization error: string {string_id} not found]"
-        except AttributeError:
-            return "[Localization not initialized]"
-
-# Пример использования
-if __name__ == "__main__":
-    localizer = Localizer()
-    print(localizer.get_string(0))  # Первая строка локализации
-    print(localizer.get_string(1))  # Вторая строка локализации
+        return self.localization.get(string_id, f"[Ошибка локализации: ID {string_id}]")

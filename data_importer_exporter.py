@@ -1,8 +1,11 @@
 import pandas as pd
 from pathlib import Path
-from kaggle.api.kaggle_api_extended import KaggleApi
+import requests
+import zipfile
+from io import BytesIO
+from typing import Tuple
 
-class ImportOrExportData:
+class DataImporterExporter:
     EXPECTED_COLUMNS = [
         "Country", "Age", "Gender", "Smoking_Status", "Second_Hand_Smoke",
         "Air_Pollution_Exposure", "Occupation_Exposure", "Rural_or_Urban",
@@ -14,35 +17,39 @@ class ImportOrExportData:
         "Tobacco_Marketing_Exposure", "Final_Prediction"
     ]
 
-    def import_export_menu(self, has_df: bool, df: pd.DataFrame) -> tuple[bool, pd.DataFrame]:
-        print("\nМеню импорта/экспорта данных:")
-        print("1 - Импорт с локального диска")
-        print("2 - Импорт с Kaggle")
-        print("3 - Экспорт данных")
+    def __init__(self, localizer):
+        self.localizer = localizer
+
+    def show_menu(self) -> Tuple[bool, pd.DataFrame]:
+        """Меню импорта/экспорта"""
+        print(f"\n{self.localizer.get_string(20)}")
+        print("1. Импорт с локального диска")
+        print("2. Импорт с Kaggle")
+        print("3. Экспорт данных")
+        print("4. Вернуться")
 
         try:
             choice = int(input("Выберите действие: "))
+            if choice == 1:
+                return self._local_import()
+            elif choice == 2:
+                return self._kaggle_import()
+            elif choice == 3:
+                return self._export_data()
+            else:
+                return False, pd.DataFrame()
         except ValueError:
-            print("Ошибка: введите число от 1 до 3")
-            return has_df, df
+            print(self.localizer.get_string(9))
+            return False, pd.DataFrame()
 
-        if choice == 1:
-            return self._read_local_file()
-        elif choice == 2:
-            return self._handle_kaggle_import()
-        elif choice == 3:
-            return self._export_data(has_df, df)
-        else:
-            print("Неверный выбор")
-            return has_df, df
-
-    def _read_local_file(self) -> tuple[bool, pd.DataFrame]:
-        path = input("Путь к файлу (csv/xlsx): ").strip()
+    def _local_import(self) -> Tuple[bool, pd.DataFrame]:
+        """Локальный импорт данных"""
+        path = input(f"{self.localizer.get_string(21)}: ").strip()
         file_path = Path(path)
 
         if not file_path.exists():
-            print(f"Ошибка: файл {file_path} не найден")
-            return False, None
+            print(self.localizer.get_string(22).format(file_path))
+            return False, pd.DataFrame()
 
         try:
             if file_path.suffix == '.csv':
@@ -50,103 +57,88 @@ class ImportOrExportData:
             elif file_path.suffix in ('.xlsx', '.xls'):
                 df = pd.read_excel(file_path)
             else:
-                print("Формат не поддерживается")
-                return False, None
-        except Exception as e:
-            print(f"Ошибка чтения файла: {e}")
-            return False, None
+                print(self.localizer.get_string(23))
+                return False, pd.DataFrame()
 
-        if not set(self.EXPECTED_COLUMNS).issubset(df.columns):
-            print("Ошибка: отсутствуют необходимые столбцы")
-            return False, None
-
-        print("Данные успешно загружены!")
-        return True, df
-
-    def _handle_kaggle_import(self) -> tuple[bool, pd.DataFrame]:
-        if not self._check_kaggle_setup():
-            self._show_kaggle_instructions()
-            return False, None
-
-        dataset_url = input("Введите URL датасета Kaggle: ").strip()
-        try:
-            dataset_slug = dataset_url.split("/datasets/")[-1]
-            username, dataset_name = dataset_slug.split("/")[:2]
-        except Exception:
-            print("Неверный формат URL")
-            return False, None
-
-        try:
-            api = KaggleApi()
-            api.authenticate()
-            api.dataset_download_files(f"{username}/{dataset_name}", path=".", unzip=True)
-
-            # Поиск первого CSV файла в текущей директории
-            for file in Path('.').iterdir():
-                if file.suffix == '.csv':
-                    df = pd.read_csv(file)
-
-                    if not set(self.EXPECTED_COLUMNS).issubset(df.columns):
-                        print("Ошибка: в данных отсутствуют необходимые столбцы")
-                        return False, None
-
-                    print("Данные успешно загружены с Kaggle!")
-                    return True, df
-
-            print("CSV файл не найден в датасете")
-            return False, None
+            if self._validate_columns(df):
+                print(self.localizer.get_string(24))
+                return True, df
+            return False, pd.DataFrame()
 
         except Exception as e:
-            print(f"Ошибка загрузки с Kaggle: {e}")
-            return False, None
+            print(f"{self.localizer.get_string(25)}: {str(e)}")
+            return False, pd.DataFrame()
 
-    def _export_data(self, has_df: bool, df: pd.DataFrame) -> tuple[bool, pd.DataFrame]:
-        if not has_df:
-            print("Нет данных для экспорта")
-            return False, None
+    def _kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
+        """Импорт данных с Kaggle"""
+        print(f"\n{self.localizer.get_string(26)}")
+        print(f"{self.localizer.get_string(27)}\n")
 
-        path = input("Путь для сохранения: ").strip()
-        filename = input("Имя файла (без расширения): ").strip()
-        file_format = input("Формат (csv/xlsx): ").lower().strip()
+        dataset_url = input(f"{self.localizer.get_string(28)}: ").strip()
 
-        if file_format not in ('csv', 'xlsx'):
-            print("Неверный формат")
-            return has_df, df
+        try:
+            # Извлечение информации из URL
+            parts = [p for p in dataset_url.strip("/").split("/") if p]
+            if len(parts) < 5 or parts[2] != "datasets":
+                raise ValueError(self.localizer.get_string(29))
+
+            username = parts[3]
+            dataset_name = parts[4]
+            download_url = f"https://www.kaggle.com/{username}/{dataset_name}/download"
+
+            # Загрузка данных
+            print(self.localizer.get_string(30))
+            response = requests.get(download_url, stream=True, timeout=15)
+            response.raise_for_status()
+
+            # Обработка архива
+            with zipfile.ZipFile(BytesIO(response.content)) as zip_file:
+                csv_files = [f for f in zip_file.namelist() if f.endswith(".csv")]
+                if not csv_files:
+                    print(self.localizer.get_string(31))
+                    return False, pd.DataFrame()
+
+                with zip_file.open(csv_files[0]) as csv_file:
+                    df = pd.read_csv(csv_file)
+
+            if self._validate_columns(df):
+                print(self.localizer.get_string(32))
+                return True, df
+            return False, pd.DataFrame()
+
+        except Exception as e:
+            print(f"{self.localizer.get_string(33)}: {str(e)}")
+            return False, pd.DataFrame()
+
+    def _export_data(self) -> Tuple[bool, pd.DataFrame]:
+        """Экспорт данных"""
+        path = input(f"{self.localizer.get_string(34)}: ").strip()
+        filename = input(f"{self.localizer.get_string(35)}: ").strip()
+        file_format = input(f"{self.localizer.get_string(36)}: ").lower().strip()
+
+        if file_format not in ("csv", "xlsx"):
+            print(self.localizer.get_string(37))
+            return False, pd.DataFrame()
 
         export_path = Path(path) / f"{filename}.{file_format}"
         export_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            if file_format == 'csv':
-                df.to_csv(export_path, index=False)
+            if file_format == "csv":
+                pd.DataFrame.to_csv(export_path, index=False)
             else:
-                df.to_excel(export_path, index=False, engine='openpyxl')
+                pd.DataFrame.to_excel(export_path, index=False, engine="openpyxl")
 
-            print(f"Файл сохранен: {export_path}")
-            return has_df, df
-
+            print(self.localizer.get_string(38).format(export_path))
+            return True, pd.DataFrame()
         except Exception as e:
-            print(f"Ошибка сохранения: {e}")
-            return has_df, df
+            print(f"{self.localizer.get_string(39)}: {str(e)}")
+            return False, pd.DataFrame()
 
-    def _check_kaggle_setup(self) -> bool:
-        kaggle_dir = Path.home() / ".kaggle"
-        config_file = kaggle_dir / "kaggle.json"
-
-        if not config_file.exists():
-            print("Kaggle API не настроен!")
+    def _validate_columns(self, df: pd.DataFrame) -> bool:
+        """Проверка структуры данных"""
+        missing = set(self.EXPECTED_COLUMNS) - set(df.columns)
+        if missing:
+            print(self.localizer.get_string(40).format(", ".join(missing)))
             return False
-
-        try:
-            KaggleApi().authenticate()
-            return True
-        except Exception as e:
-            print(f"Ошибка аутентификации: {e}")
-            return False
-
-    def _show_kaggle_instructions(self) -> None:
-        print("\nИнструкция по настройке Kaggle API:")
-        print("1. Зарегистрируйтесь на kaggle.com")
-        print("2. В настройках аккаунта создайте API токен")
-        print("3. Поместите файл kaggle.json в папку:")
-        print(f"   {Path.home() / '.kaggle'}")
+        return True
