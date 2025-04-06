@@ -102,3 +102,5 @@ class MainApplication:
 
 if __name__ == "__main__":
     app = MainApplication()
+
+#йобаныймойпупок шо ето происходит ужас
