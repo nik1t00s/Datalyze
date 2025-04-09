@@ -33,20 +33,20 @@ class DataFrameViewer:
             if input(f"{self.localizer.get_string(43)} (y/n): ").lower() != "y":
                 break
 
-    def _filter_data(self, df: pd.DataFrame):
+    def __filter_data(self, df: pd.DataFrame):
         """Фильтрация данных"""
         try:
-            filtered_df = df.copy()
-            filtered_df = self._apply_filters(filtered_df)
-
-            if not filtered_df.empty:
-                print(f"\n{self.localizer.get_string(44)}:")
-                print(tabulate(filtered_df, headers="keys", tablefmt="psql"))
-                print(f"{self.localizer.get_string(45)}: {len(filtered_df)}")
-            else:
-                print(self.localizer.get_string(46))
+            column = input("Введите столбец для фильтрации: ")
+            value = input("Введите значение для фильтрации: ")
+            
+            if column not in df.columns:
+                print("Неверный столбец!")
+                return
+                
+            filtered_df = df[df[column].astype(str).str.contains(value, case=False)]
+            self.__show_filtered_data(filtered_df)
         except Exception as e:
-            print(f"{self.localizer.get_string(47)}: {str(e)}")
+            print(f"Ошибка фильтрации: {str(e)}")
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.DataFrame:
         """Применение фильтров"""

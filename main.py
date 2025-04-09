@@ -81,10 +81,11 @@ class MainApplication:
 
             handlers[choice]()
 
-    def _handle_data_io(self):
+    def __handle_data_io(self):
         """Работа с импортом/экспортом данных"""
-        success, self.df = self.importer.show_menu()
+        success, new_df = self.importer.show_menu()
         if success:
+            self.df = new_df  # Сохраняем DataFrame
             print(self.localizer.get_string(11).format(len(self.df)))
 
     def _show_data_table(self):

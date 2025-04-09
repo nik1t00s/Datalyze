@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib as mpl
+
+mpl.rcParams['agg.path.chunksize'] = 10000
 
 class DataFrameVisualizer:
     def __init__(self, localizer):
@@ -26,6 +29,7 @@ class DataFrameVisualizer:
 
     def _plot_chart(self, df: pd.DataFrame, chart_type: str):
         """Построение графиков"""
+        print(f"\nДоступные столбцы: {', '.join(df.columns)}")
         try:
             x_col = input(f"{self.localizer.get_string(49)}: ").strip()
             y_col = input(f"{self.localizer.get_string(50)}: ").strip()
@@ -36,12 +40,12 @@ class DataFrameVisualizer:
 
             plt.figure(figsize=(12, 6))
             if chart_type == "bar":
-                df.plot.bar(x=x_col, y=y_col)
+                df.plot.bar(x=x_col, y=y_col, ax=plt.gca())
             else:
-                df.plot.line(x=x_col, y=y_col)
+               df.plot.line(x=x_col, y=y_col, ax=plt.gca())
 
             plt.title(f"{y_col} vs {x_col}")
             plt.tight_layout()
-            plt.show()
+            plt.show(block = False)
         except Exception as e:
             print(f"{self.localizer.get_string(52)}: {str(e)}")
