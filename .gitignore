@@ -180,4 +180,9 @@ docker-compose.yml
 .dockerignore
 launch.json
 tasks.json
+
+#MacOS
 .DS_Store
+
+#temp files
+temp

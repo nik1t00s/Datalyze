@@ -5,10 +5,11 @@ import zipfile
 from io import BytesIO
 from typing import Tuple
 from kaggle.api.kaggle_api_extended import KaggleApi
+import shutil
 
 
 class DataImporterExporter:
-    EXPECTED_COLUMNS = [
+    '''EXPECTED_COLUMNS = [
         "Country", "Age", "Gender", "Smoking_Status", "Second_Hand_Smoke",
         "Air_Pollution_Exposure", "Occupation_Exposure", "Rural_or_Urban",
         "Socioeconomic_Status", "Healthcare_Access", "Insurance_Coverage",
@@ -17,7 +18,7 @@ class DataImporterExporter:
         "Language_Barrier", "Mortality_Risk", "5_Year_Survival_Probability",
         "Delay_in_Diagnosis", "Family_History", "Indoor_Smoke_Exposure",
         "Tobacco_Marketing_Exposure", "Final_Prediction"
-    ]
+    '''
 
     def __init__(self, localizer):
         self.localizer = localizer
@@ -46,7 +47,7 @@ class DataImporterExporter:
 
     def _local_import(self) -> Tuple[bool, pd.DataFrame]:
         """Локальный импорт данных"""
-        ppath = input(f"{self.localizer.get_string(21)} (с именем файла): ").strip()
+        path = input(f"{self.localizer.get_string(21)} (с именем файла): ").strip()
         file_path = Path(path)
 
         if not file_path.exists():
@@ -62,16 +63,16 @@ class DataImporterExporter:
                 print(self.localizer.get_string(23))
                 return False, pd.DataFrame()
 
-            if self._validate_columns(df):
+            '''if self._validate_columns(df):
                 print(self.localizer.get_string(24))
                 return True, df
-            return False, pd.DataFrame()
+            return False, pd.DataFrame()'''
 
         except Exception as e:
             print(f"{self.localizer.get_string(25)}: {str(e)}")
             return False, pd.DataFrame()
 
-    def __kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
+    def _kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
         print(f"\n{self.localizer.get_string(26)}")
         print(f"{self.localizer.get_string(27)}\n")
     
@@ -98,10 +99,10 @@ class DataImporterExporter:
         
             df = pd.read_csv(csv_files[0])
         
-            if self._validate_columns(df):
+            '''if self._validate_columns(df):
                 print(self.localizer.get_string(32))
                 return True, df
-            return False, pd.DataFrame()
+            return False, pd.DataFrame()'''
         except Exception as e:
             print(f"{self.localizer.get_string(33)}: {str(e)}")
             return False, pd.DataFrame()
@@ -133,10 +134,10 @@ class DataImporterExporter:
             print(f"{self.localizer.get_string(39)}: {str(e)}")
             return False, self.df
 
-    def _validate_columns(self, df: pd.DataFrame) -> bool:
+    '''def _validate_columns(self, df: pd.DataFrame) -> bool:
         """Проверка структуры данных"""
         missing = set(self.EXPECTED_COLUMNS) - set(df.columns)
         if missing:
             print(self.localizer.get_string(40).format(", ".join(missing)))
             return False
-        return True
+        return True'''

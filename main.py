@@ -81,11 +81,11 @@ class MainApplication:
 
             handlers[choice]()
 
-    def __handle_data_io(self):
+    def _handle_data_io(self):
         """Работа с импортом/экспортом данных"""
         success, new_df = self.importer.show_menu()
         if success:
-            self.df = new_df  # Сохраняем DataFrame
+            self.df = new_df  # Сохранение данных
             print(self.localizer.get_string(11).format(len(self.df)))
 
     def _show_data_table(self):
@@ -103,5 +103,3 @@ class MainApplication:
 
 if __name__ == "__main__":
     app = MainApplication()
-
-#йобаныймойпупок шо ето происходит ужас
