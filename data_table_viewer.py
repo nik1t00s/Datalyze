@@ -33,8 +33,9 @@ class DataFrameViewer:
             if input(f"{self.localizer.get_string(43)} (y/n): ").lower() != "y":
                 break
 
-    def __filter_data(self, df: pd.DataFrame):
+    def _filter_data(self, df: pd.DataFrame):
         """Фильтрация данных"""
+        print(f"\nДоступные столбцы: {', '.join(df.columns)}")
         try:
             column = input("Введите столбец для фильтрации: ")
             value = input("Введите значение для фильтрации: ")
@@ -44,7 +45,7 @@ class DataFrameViewer:
                 return
                 
             filtered_df = df[df[column].astype(str).str.contains(value, case=False)]
-            self.__show_filtered_data(filtered_df)
+            self._show_filtered_data(filtered_df)
         except Exception as e:
             print(f"Ошибка фильтрации: {str(e)}")
 
@@ -52,3 +53,11 @@ class DataFrameViewer:
         """Применение фильтров"""
         # Реализация фильтров из предыдущей версии
         return df
+    def _show_filtered_data(self, filtered_df: pd.DataFrame):
+        """Отображение отфильтрованных данных"""
+        if filtered_df.empty:
+            print("Нет данных, соответствующих фильтру.")
+            return
+
+        print(f"\nРезультаты фильтрации ({len(filtered_df)} записей):")
+        print(tabulate(filtered_df, headers="keys", tablefmt="psql"))

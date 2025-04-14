@@ -7,6 +7,7 @@ from typing import Tuple
 from kaggle.api.kaggle_api_extended import KaggleApi
 import shutil
 
+shutil.rmtree("temp", ignore_errors=True)  # Удаление папки даже при ошибках'''
 
 class DataImporterExporter:
     '''EXPECTED_COLUMNS = [
@@ -20,8 +21,9 @@ class DataImporterExporter:
         "Tobacco_Marketing_Exposure", "Final_Prediction"
     '''
 
-    def __init__(self, localizer):
+    def __init__(self, localizer, main_app):
         self.localizer = localizer
+        self.main_app = main_app 
 
     def show_menu(self) -> Tuple[bool, pd.DataFrame]:
         """Меню импорта/экспорта"""
@@ -47,29 +49,33 @@ class DataImporterExporter:
 
     def _local_import(self) -> Tuple[bool, pd.DataFrame]:
         """Локальный импорт данных"""
-        path = input(f"{self.localizer.get_string(21)} (с именем файла): ").strip()
-        file_path = Path(path)
-
-        if not file_path.exists():
-            print(self.localizer.get_string(22).format(file_path))
-            return False, pd.DataFrame()
-
         try:
-            if file_path.suffix == '.csv':
-                df = pd.read_csv(file_path)
-            elif file_path.suffix in ('.xlsx', '.xls'):
-                df = pd.read_excel(file_path)
-            else:
-                print(self.localizer.get_string(23))
+            path = input(f"{self.localizer.get_string(21)} (с именем файла): ").strip()
+            file_path = Path(path)
+
+            if not file_path.exists():
+                print(self.localizer.get_string(22).format(file_path))
                 return False, pd.DataFrame()
 
-            '''if self._validate_columns(df):
-                print(self.localizer.get_string(24))
-                return True, df
-            return False, pd.DataFrame()'''
+            try:
+                if file_path.suffix == '.csv':
+                    df = pd.read_csv(file_path)
+                elif file_path.suffix in ('.xlsx', '.xls'):
+                    df = pd.read_excel(file_path)
+                else:
+                    print(self.localizer.get_string(23))
+                    return False, pd.DataFrame()
 
-        except Exception as e:
-            print(f"{self.localizer.get_string(25)}: {str(e)}")
+                '''if self._validate_columns(df):
+                    print(self.localizer.get_string(24))
+                    return True, df
+                return False, pd.DataFrame()'''
+                return True, df
+            except Exception as e:
+                print(f"{self.localizer.get_string(25)}: {str(e)}")
+                return False, pd.DataFrame()
+        except KeyboardInterrupt:
+            print("\nОперация отменена.")
             return False, pd.DataFrame()
 
     def _kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
@@ -91,26 +97,27 @@ class DataImporterExporter:
             print(self.localizer.get_string(30))
             api.dataset_download_files(f"{user}/{dataset_name}", path="temp", unzip=True)
         
-            # Поиск CSV файла
+            # Использование Path
             csv_files = list(Path("temp").glob("*.csv"))
-            if not csv_files:
-                print(self.localizer.get_string(31))
-                return False, pd.DataFrame()
-        
-            df = pd.read_csv(csv_files[0])
-        
+            
+            if csv_files:
+                df = pd.read_csv(csv_files[0])
+                shutil.rmtree("temp")  # Удаление временной папки'''
+                return True, df  # Возврат кортежа
+            return False, pd.DataFrame()
             '''if self._validate_columns(df):
                 print(self.localizer.get_string(32))
                 return True, df
             return False, pd.DataFrame()'''
         except Exception as e:
             print(f"{self.localizer.get_string(33)}: {str(e)}")
+            print(f"Ошибка: {str(e)}")
             return False, pd.DataFrame()
-
+    
     def _export_data(self) -> Tuple[bool, pd.DataFrame]:
-        if self.df.empty:
+        if self.main_app.df.empty:
             print(self.localizer.get_string(10))
-            return False, self.df
+            return False, self.main_app.df
         
         path = input(f"{self.localizer.get_string(34)}: ").strip()
         filename = input(f"{self.localizer.get_string(35)}: ").strip()
@@ -121,18 +128,18 @@ class DataImporterExporter:
         
         try:
             if file_format == "csv":
-                self.df.to_csv(export_path, index=False)
+                self.main_app.df.to_csv(export_path, index=False)
             elif file_format == "xlsx":
-                self.df.to_excel(export_path, index=False, engine="openpyxl")
+                self.main_app.df.to_excel(export_path, index=False, engine="openpyxl")
             else:
                 print(self.localizer.get_string(37))
-                return False, self.df
+                return False, self.main_app.df
             
             print(self.localizer.get_string(38).format(export_path))
-            return True, self.df
+            return True, self.main_app.df
         except Exception as e:
             print(f"{self.localizer.get_string(39)}: {str(e)}")
-            return False, self.df
+            return False, self.main_app.df
 
     '''def _validate_columns(self, df: pd.DataFrame) -> bool:
         """Проверка структуры данных"""

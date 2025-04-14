@@ -4,6 +4,7 @@ from data_table_viewer import DataFrameViewer
 from data_visualizer import DataFrameVisualizer
 import pandas as pd
 from pathlib import Path
+import openpyxl
 
 class MainApplication:
     def __init__(self):
@@ -16,7 +17,7 @@ class MainApplication:
     def _init_components(self):
         """Инициализация компонентов приложения"""
         try:
-            self.importer = DataImporterExporter(self.localizer)
+            self.importer = DataImporterExporter(self.localizer, self)
             self.table_viewer = DataFrameViewer(self.localizer)
             self.visualizer = DataFrameVisualizer(self.localizer)
         except Exception as e:
