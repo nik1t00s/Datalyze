@@ -115,18 +115,24 @@ class DataImporterExporter:
             return False, pd.DataFrame()
     
     def _export_data(self) -> Tuple[bool, pd.DataFrame]:
+        """Экспорт данных с проверкой пути"""
         if self.main_app.df.empty:
             print(self.localizer.get_string(10))
             return False, self.main_app.df
-        
-        path = input(f"{self.localizer.get_string(34)}: ").strip()
-        filename = input(f"{self.localizer.get_string(35)}: ").strip()
-        file_format = input(f"{self.localizer.get_string(36)}: ").lower().strip()
-        
-        export_path = Path(path) / f"{filename}.{file_format}"
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-        
+            
         try:
+            path = input(f"{self.localizer.get_string(34)}: ").strip()
+            filename = input(f"{self.localizer.get_string(35)}: ").strip()
+            file_format = input(f"{self.localizer.get_string(36)}: ").lower().strip()
+            
+            # Проверка пути
+            export_path = Path(path) / f"{filename}.{file_format}"
+            if not export_path.parent.exists():
+                print(f"Ошибка: путь '{export_path.parent}' не существует!")
+                return False, self.main_app.df
+                
+            # Сохранение
+            export_path.parent.mkdir(parents=True, exist_ok=True)
             if file_format == "csv":
                 self.main_app.df.to_csv(export_path, index=False)
             elif file_format == "xlsx":
@@ -134,9 +140,15 @@ class DataImporterExporter:
             else:
                 print(self.localizer.get_string(37))
                 return False, self.main_app.df
-            
-            print(self.localizer.get_string(38).format(export_path))
-            return True, self.main_app.df
+                
+            # Проверка сохранения
+            if export_path.exists():
+                print(self.localizer.get_string(38).format(export_path))
+                return True, self.main_app.df
+            else:
+                print("Ошибка: файл не был сохранен!")
+                return False, self.main_app.df
+                
         except Exception as e:
             print(f"{self.localizer.get_string(39)}: {str(e)}")
             return False, self.main_app.df

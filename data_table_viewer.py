@@ -34,20 +34,40 @@ class DataFrameViewer:
                 break
 
     def _filter_data(self, df: pd.DataFrame):
-        """Фильтрация данных"""
-        print(f"\nДоступные столбцы: {', '.join(df.columns)}")
+        """Фильтрация данных с выбором столбцов и сортировкой"""
+        print("\n=== Фильтрация данных ===")
+        print("Доступные столбцы:", ', '.join(df.columns))
+        
         try:
-            column = input("Введите столбец для фильтрации: ")
-            value = input("Введите значение для фильтрации: ")
+            # Выбор столбцов для отображения
+            columns_to_show = input("Введите столбцы для отображения (через запятую, или оставьте пустым для всех): ").strip()
+            if columns_to_show:
+                columns = [col.strip() for col in columns_to_show.split(',')]
+                df = df[columns]
             
-            if column not in df.columns:
-                print("Неверный столбец!")
+            # Фильтрация
+            print("\n[Шаг 1/2] Фильтрация...")
+            filter_column = input("Введите столбец для фильтрации: ").strip()
+            if filter_column not in df.columns:
+                print("Ошибка: столбец не найден!")
                 return
                 
-            filtered_df = df[df[column].astype(str).str.contains(value, case=False)]
+            filter_value = input(f"Введите значение для фильтрации ({filter_column}): ").strip()
+            filtered_df = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
+            
+            # Сортировка
+            print("\n[Шаг 2/2] Сортировка...")
+            sort_column = input("Введите столбец для сортировки (оставьте пустым, если не нужно): ").strip()
+            if sort_column and sort_column in filtered_df.columns:
+                ascending = input("Сортировать по возрастанию (y/n)? ").strip().lower() == 'y'
+                filtered_df = filtered_df.sort_values(by=sort_column, ascending=ascending)
+            
+            # Отображение
+            print("\nИдет обработка данных...")
             self._show_filtered_data(filtered_df)
+            
         except Exception as e:
-            print(f"Ошибка фильтрации: {str(e)}")
+            print(f"Ошибка: {str(e)}")
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.DataFrame:
         """Применение фильтров"""
