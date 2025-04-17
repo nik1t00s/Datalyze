@@ -21,8 +21,7 @@ from localization import Localizer
 from data_table_viewer import DataFrameViewer
 from data_visualizer import DataFrameVisualizer
 import pandas as pd
-from pathlib import Path
-import openpyxl
+
 
 class MainApplication:
     def __init__(self):
@@ -119,6 +118,7 @@ class MainApplication:
         """Завершение работы приложения"""
         print(f"\n{self.localizer.get_string(12)}")
         print(self.localizer.get_string(13))
+
 
 if __name__ == "__main__":
     app = MainApplication()
