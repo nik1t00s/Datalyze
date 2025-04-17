@@ -99,6 +99,14 @@ class DataImporterExporter:
             return False, pd.DataFrame()
 
     def _kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
+        """Импорт данных с Kaggle.
+
+        Returns:
+            Tuple[bool, pd.DataFrame]: (Успех операции, DataFrame с данными).
+        
+        Raises:
+            Exception: Ошибки API Kaggle или загрузки файлов.
+        """
         print(f"\n{self.localizer.get_string(26)}")
         print(f"{self.localizer.get_string(27)}\n")
     
