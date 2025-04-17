@@ -1,3 +1,21 @@
+"""Главный модуль приложения для анализа медицинских данных.
+
+Содержит класс `MainApplication`, который управляет основным циклом работы:
+- Инициализация компонентов
+- Отображение меню
+- Обработка выбора пользователя
+
+Пример использования:
+    if __name__ == "__main__":
+        app = MainApplication()
+
+Модули:
+    data_importer_exporter: Импорт/экспорт данных.
+    data_table_viewer: Просмотр табличных данных.
+    data_visualizer: Визуализация данных.
+    localization: Локализация строк.
+"""
+
 from data_importer_exporter import DataImporterExporter
 from localization import Localizer
 from data_table_viewer import DataFrameViewer
