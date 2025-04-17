@@ -1,3 +1,23 @@
+"""Модуль для импорта и экспорта данных.
+
+Поддерживает:
+- Локальный импорт из CSV/XLSX
+- Импорт с Kaggle API
+- Экспорт в CSV/XLSX
+
+Классы:
+    DataImporterExporter: Основной класс для работы с данными.
+
+Пример:
+    importer = DataImporterExporter(localizer, main_app)
+    success, df = importer.show_menu()
+
+Требования:
+    - pandas
+    - openpyxl (для Excel)
+    - kaggle-api (для Kaggle)
+"""
+
 import pandas as pd
 from pathlib import Path
 import requests
