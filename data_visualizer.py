@@ -1,3 +1,20 @@
+"""Модуль для визуализации данных через matplotlib.
+
+Поддерживаемые графики:
+- Столбчатые диаграммы
+- Линейные графики
+
+Классы:
+    DataFrameVisualizer: Управляет построением графиков.
+
+Пример:
+    visualizer = DataFrameVisualizer(localizer)
+    visualizer.show_menu(df)
+
+Требования:
+    - matplotlib>=3.0
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib as mpl
@@ -28,7 +45,15 @@ class DataFrameVisualizer:
                 print(self.localizer.get_string(9))
 
     def _plot_chart(self, df: pd.DataFrame, chart_type: str):
-        """Построение графиков"""
+        """Построение графика указанного типа.
+    
+        Args:
+            df: DataFrame с данными.
+            chart_type: Тип графика ('bar' или 'line').
+        
+        Raises:
+            KeyError: Если указаны неверные столбцы.
+        """
         print(f"\nДоступные столбцы: {', '.join(df.columns)}")
         try:
             x_col = input(f"{self.localizer.get_string(49)}: ").strip()
