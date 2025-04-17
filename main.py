@@ -25,6 +25,13 @@ import pandas as pd
 
 class MainApplication:
     def __init__(self):
+        """Инициализирует главное приложение.
+
+        Создает:
+            - Пустой DataFrame для хранения данных
+            - Объект локализации
+            - Основные компоненты приложения
+        """
         self.df = pd.DataFrame()
         self.localizer = Localizer()
         self._init_components()
@@ -32,7 +39,16 @@ class MainApplication:
         self.run()
 
     def _init_components(self):
-        """Инициализация компонентов приложения"""
+        """Инициализирует основные компоненты приложения.
+
+        Создает:
+            - Импортер/экспортер данных
+            - Просмотрщик таблиц
+            - Визуализатор данных
+
+        Raises:
+            SystemExit: Если инициализация не удалась
+        """
         try:
             self.importer = DataImporterExporter(self.localizer, self)
             self.table_viewer = DataFrameViewer(self.localizer)
@@ -42,7 +58,7 @@ class MainApplication:
             exit(1)
 
     def _show_welcome(self):
-        """Отображение приветственного сообщения"""
+        """Выводит приветственное сообщение при запуске."""
         print("=" * 50)
         print(self.localizer.get_string(0))
         print(self.localizer.get_string(1))
@@ -50,7 +66,14 @@ class MainApplication:
         print("\n")
 
     def run(self):
-        """Основной цикл работы приложения"""
+        """Основной цикл работы приложения.
+
+        Обрабатывает:
+            - Отображение меню
+            - Ввод пользователя
+            - Обработку выбора
+            - Критические ошибки
+        """
         while True:
             try:
                 self._display_main_menu()
@@ -69,7 +92,7 @@ class MainApplication:
                 print(f"{self.localizer.get_string(16)}: {str(e)}")
 
     def _display_main_menu(self):
-        """Отображение главного меню"""
+        """Отображает главное меню с локализованными строками."""
         print(f"\n{self.localizer.get_string(2)}")
         print(f"0 - {self.localizer.get_string(5)}")
         print(f"1 - {self.localizer.get_string(6)}")
@@ -77,7 +100,14 @@ class MainApplication:
         print(f"3 - {self.localizer.get_string(8)}")
 
     def _get_user_choice(self) -> int:
-        """Получение выбора пользователя"""
+        """Получает и валидирует выбор пользователя.
+
+        Returns:
+            int: Выбранный пункт меню
+
+        Note:
+            Повторяет запрос при некорректном вводе
+        """
         while True:
             try:
                 return int(input(f"{self.localizer.get_string(17)}: "))
@@ -85,7 +115,14 @@ class MainApplication:
                 print(self.localizer.get_string(9))
 
     def _handle_menu_choice(self, choice: int):
-        """Обработка выбора пункта меню"""
+        """Обрабатывает выбор пункта меню.
+
+        Args:
+            choice: Выбранный пункт меню
+
+        Checks:
+            - Загружены ли данные для просмотра/визуализации
+        """
         handlers = {
             1: self._handle_data_io,
             2: self._show_data_table,
@@ -100,22 +137,26 @@ class MainApplication:
             handlers[choice]()
 
     def _handle_data_io(self):
-        """Работа с импортом/экспортом данных"""
+        """Обрабатывает операции импорта/экспорта данных.
+
+        Обновляет:
+            self.df: Если импорт прошел успешно
+        """
         success, new_df = self.importer.show_menu()
         if success:
-            self.df = new_df  # Сохранение данных
+            self.df = new_df
             print(self.localizer.get_string(11).format(len(self.df)))
 
     def _show_data_table(self):
-        """Отображение данных в табличном виде"""
+        """Запускает просмотр данных в табличном виде."""
         self.table_viewer.show_menu(self.df)
 
     def _show_data_charts(self):
-        """Визуализация данных в виде графиков"""
+        """Запускает визуализацию данных."""
         self.visualizer.show_menu(self.df)
 
     def _exit_application(self):
-        """Завершение работы приложения"""
+        """Выводит сообщение о завершении работы."""
         print(f"\n{self.localizer.get_string(12)}")
         print(self.localizer.get_string(13))
 
