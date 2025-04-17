@@ -1,0 +1,1060 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Документация проекта</title>
+<meta charset="utf-8"/>
+<style>
+            /* Сохраняем оригинальные стили pdoc */
+            :root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}
+            /* Добавляем стили для навигации */
+            .module-nav {position: fixed; left: 0; top: 0; width: 250px; height: 100vh; overflow-y: auto; padding: 10px; background: #f5f5f5;}
+            .module-content {margin-left: 270px; padding: 20px;}
+            .module-section {margin-bottom: 40px; border-bottom: 1px solid #ddd; padding-bottom: 20px;}
+            .back-to-top {display: block; text-align: right; margin-top: 20px;}
+        </style>
+</head>
+<body>
+<div class="module-nav"><h1>Модули проекта</h1><a href="#main">main</a><br/><a href="#data_importer_exporter">data_importer_exporter</a><br/><a href="#data_table_viewer">data_table_viewer</a><br/><a href="#data_visualizer">data_visualizer</a><br/><a href="#localization">localization</a><br/></div>
+<div class="module-content"><div class_="module-section" id="main"><h2>main</h2><article id="content">
+<header>
+<h1 class="title">Module <code>main</code></h1>
+</header>
+<section id="section-intro">
+<p>Главный модуль приложения для анализа медицинских данных.</p>
+<p>Содержит класс <code><a href="#main.MainApplication" title="main.MainApplication">MainApplication</a></code>, который управляет основным циклом работы:
+- Инициализация компонентов
+- Отображение меню
+- Обработка выбора пользователя</p>
+<p>Пример использования:
+if <strong>name</strong> == "<strong>main</strong>":
+app = MainApplication()</p>
+<p>Модули:
+data_importer_exporter: Импорт/экспорт данных.
+data_table_viewer: Просмотр табличных данных.
+data_visualizer: Визуализация данных.
+localization: Локализация строк.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="main.MainApplication"><code class="flex name class">
+<span>class <span class="ident">MainApplication</span></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MainApplication:
+    def __init__(self):
+        """Инициализирует главное приложение.
+
+        Создает:
+            - Пустой DataFrame для хранения данных
+            - Объект локализации
+            - Основные компоненты приложения
+        """
+        self.df = pd.DataFrame()
+        self.localizer = Localizer()
+        self._init_components()
+        self._show_welcome()
+        self.run()
+
+    def _init_components(self):
+        """Инициализирует основные компоненты приложения.
+
+        Создает:
+            - Импортер/экспортер данных
+            - Просмотрщик таблиц
+            - Визуализатор данных
+
+        Raises:
+            SystemExit: Если инициализация не удалась
+        """
+        try:
+            self.importer = DataImporterExporter(self.localizer, self)
+            self.table_viewer = DataFrameViewer(self.localizer)
+            self.visualizer = DataFrameVisualizer(self.localizer)
+        except Exception as e:
+            print(f"{self.localizer.get_string(14)}: {str(e)}")
+            exit(1)
+
+    def _show_welcome(self):
+        """Выводит приветственное сообщение при запуске."""
+        print("=" * 50)
+        print(self.localizer.get_string(0))
+        print(self.localizer.get_string(1))
+        print("=" * 50)
+        print("\n")
+
+    def run(self):
+        """Основной цикл работы приложения.
+
+        Обрабатывает:
+            - Отображение меню
+            - Ввод пользователя
+            - Обработку выбора
+            - Критические ошибки
+        """
+        while True:
+            try:
+                self._display_main_menu()
+                choice = self._get_user_choice()
+
+                if choice == 0:
+                    self._exit_application()
+                    break
+
+                self._handle_menu_choice(choice)
+
+            except KeyboardInterrupt:
+                print(f"\n{self.localizer.get_string(15)}")
+                break
+            except Exception as e:
+                print(f"{self.localizer.get_string(16)}: {str(e)}")
+
+    def _display_main_menu(self):
+        """Отображает главное меню с локализованными строками."""
+        print(f"\n{self.localizer.get_string(2)}")
+        print(f"0 - {self.localizer.get_string(5)}")
+        print(f"1 - {self.localizer.get_string(6)}")
+        print(f"2 - {self.localizer.get_string(7)}")
+        print(f"3 - {self.localizer.get_string(8)}")
+
+    def _get_user_choice(self) -&gt; int:
+        """Получает и валидирует выбор пользователя.
+
+        Returns:
+            int: Выбранный пункт меню
+
+        Note:
+            Повторяет запрос при некорректном вводе
+        """
+        while True:
+            try:
+                return int(input(f"{self.localizer.get_string(17)}: "))
+            except ValueError:
+                print(self.localizer.get_string(9))
+
+    def _handle_menu_choice(self, choice: int):
+        """Обрабатывает выбор пункта меню.
+
+        Args:
+            choice: Выбранный пункт меню
+
+        Checks:
+            - Загружены ли данные для просмотра/визуализации
+        """
+        handlers = {
+            1: self._handle_data_io,
+            2: self._show_data_table,
+            3: self._show_data_charts
+        }
+
+        if choice in handlers:
+            if choice in [2, 3] and self.df.empty:
+                print(self.localizer.get_string(10))
+                return
+
+            handlers[choice]()
+
+    def _handle_data_io(self):
+        """Обрабатывает операции импорта/экспорта данных.
+
+        Обновляет:
+            self.df: Если импорт прошел успешно
+        """
+        success, new_df = self.importer.show_menu()
+        if success:
+            self.df = new_df
+            print(self.localizer.get_string(11).format(len(self.df)))
+
+    def _show_data_table(self):
+        """Запускает просмотр данных в табличном виде."""
+        self.table_viewer.show_menu(self.df)
+
+    def _show_data_charts(self):
+        """Запускает визуализацию данных."""
+        self.visualizer.show_menu(self.df)
+
+    def _exit_application(self):
+        """Выводит сообщение о завершении работы."""
+        print(f"\n{self.localizer.get_string(12)}")
+        print(self.localizer.get_string(13))</code></pre>
+</details>
+<div class="desc"><p>Инициализирует главное приложение.</p>
+<p>Создает:
+- Пустой DataFrame для хранения данных
+- Объект локализации
+- Основные компоненты приложения</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="main.MainApplication.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self):
+    """Основной цикл работы приложения.
+
+    Обрабатывает:
+        - Отображение меню
+        - Ввод пользователя
+        - Обработку выбора
+        - Критические ошибки
+    """
+    while True:
+        try:
+            self._display_main_menu()
+            choice = self._get_user_choice()
+
+            if choice == 0:
+                self._exit_application()
+                break
+
+            self._handle_menu_choice(choice)
+
+        except KeyboardInterrupt:
+            print(f"\n{self.localizer.get_string(15)}")
+            break
+        except Exception as e:
+            print(f"{self.localizer.get_string(16)}: {str(e)}")</code></pre>
+</details>
+<div class="desc"><p>Основной цикл работы приложения.</p>
+<p>Обрабатывает:
+- Отображение меню
+- Ввод пользователя
+- Обработку выбора
+- Критические ошибки</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article></div><div class_="module-section" id="data_importer_exporter"><h2>data_importer_exporter</h2><article id="content">
+<header>
+<h1 class="title">Module <code>data_importer_exporter</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль для импорта и экспорта данных.</p>
+<p>Поддерживает:
+- Локальный импорт из CSV/XLSX
+- Импорт с Kaggle API
+- Экспорт в CSV/XLSX</p>
+<p>Классы:
+DataImporterExporter: Основной класс для работы с импортом/экспортом данных.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="data_importer_exporter.DataImporterExporter"><code class="flex name class">
+<span>class <span class="ident">DataImporterExporter</span></span>
+<span>(</span><span>localizer, main_app)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataImporterExporter:
+    """Обрабатывает операции импорта/экспорта данных.
+
+    Attributes:
+        localizer: Объект для локализации текстов
+        main_app: Ссылка на главное приложение для доступа к данным
+    """
+
+    def __init__(self, localizer, main_app):
+        """Инициализирует импортер/экспортер.
+
+        Args:
+            localizer: Объект локализации для получения текстов интерфейса
+            main_app: Ссылка на главное приложение
+        """
+        self.localizer = localizer
+        self.main_app = main_app
+
+    def show_menu(self) -&gt; Tuple[bool, pd.DataFrame]:
+        """Отображает меню импорта/экспорта и обрабатывает выбор пользователя.
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+
+        Menu Options:
+            1. Импорт с локального диска
+            2. Импорт с Kaggle
+            3. Экспорт данных
+            4. Вернуться
+        """
+        print(f"\n{self.localizer.get_string(20)}")
+        print("1. Импорт с локального диска")
+        print("2. Импорт с Kaggle")
+        print("3. Экспорт данных")
+        print("4. Вернуться")
+
+        try:
+            choice = int(input("Выберите действие: "))
+            if choice == 1:
+                return self._local_import()
+            elif choice == 2:
+                return self._kaggle_import()
+            elif choice == 3:
+                return self._export_data()
+            return False, pd.DataFrame()
+        except ValueError:
+            print(self.localizer.get_string(9))
+            return False, pd.DataFrame()
+
+    def _local_import(self) -&gt; Tuple[bool, pd.DataFrame]:
+        """Загружает данные из локального файла.
+
+        Supported Formats:
+            - CSV (.csv)
+            - Excel (.xlsx, .xls)
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные
+
+        Raises:
+            KeyboardInterrupt: При отмене операции пользователем
+        """
+        try:
+            path = input(f"{self.localizer.get_string(21)} (с именем файла): ").strip()
+            file_path = Path(path)
+
+            if not file_path.exists():
+                print(self.localizer.get_string(22).format(file_path))
+                return False, pd.DataFrame()
+
+            try:
+                if file_path.suffix == '.csv':
+                    df = pd.read_csv(file_path)
+                elif file_path.suffix in ('.xlsx', '.xls'):
+                    df = pd.read_excel(file_path)
+                else:
+                    print(self.localizer.get_string(23))
+                    return False, pd.DataFrame()
+
+                return True, df
+            except Exception as e:
+                print(f"{self.localizer.get_string(25)}: {str(e)}")
+                return False, pd.DataFrame()
+        except KeyboardInterrupt:
+            print("\nОперация отменена.")
+            return False, pd.DataFrame()
+
+    def _kaggle_import(self) -&gt; Tuple[bool, pd.DataFrame]:
+        """Загружает датасет с Kaggle через API.
+
+        Workflow:
+            1. Запрашивает URL датасета
+            2. Аутентифицируется в Kaggle API
+            3. Скачивает и распаковывает архив
+            4. Загружает первый найденный CSV-файл
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные
+
+        Raises:
+            Exception: При ошибках API или загрузки файлов
+        """
+        print(f"\n{self.localizer.get_string(26)}")
+        print(f"{self.localizer.get_string(27)}\n")
+
+        dataset_url = input(f"{self.localizer.get_string(28)}: ").strip()
+
+        try:
+            api = KaggleApi()
+            api.authenticate()
+
+            parts = dataset_url.split('/')
+            dataset_name = parts[-1]
+            user = parts[-2]
+
+            print(self.localizer.get_string(30))
+            api.dataset_download_files(f"{user}/{dataset_name}", path="temp", unzip=True)
+
+            csv_files = list(Path("temp").glob("*.csv"))
+
+            if csv_files:
+                df = pd.read_csv(csv_files[0])
+                shutil.rmtree("temp")
+                return True, df
+            return False, pd.DataFrame()
+        except Exception as e:
+            print(f"{self.localizer.get_string(33)}: {str(e)}")
+            return False, pd.DataFrame()
+
+    def _export_data(self) -&gt; Tuple[bool, pd.DataFrame]:
+        """Экспортирует данные в файл с проверкой пути.
+
+        Supported Formats:
+            - CSV (.csv)
+            - Excel (.xlsx)
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Текущие данные (не изменяются)
+
+        Raises:
+            Exception: При ошибках сохранения файла
+        """
+        if self.main_app.df.empty:
+            print(self.localizer.get_string(10))
+            return False, self.main_app.df
+
+        try:
+            path = input(f"{self.localizer.get_string(34)}: ").strip()
+            filename = input(f"{self.localizer.get_string(35)}: ").strip()
+            file_format = input(f"{self.localizer.get_string(36)}: ").lower().strip()
+
+            export_path = Path(path) / f"{filename}.{file_format}"
+            if not export_path.parent.exists():
+                print(f"Ошибка: путь '{export_path.parent}' не существует!")
+                return False, self.main_app.df
+
+            export_path.parent.mkdir(parents=True, exist_ok=True)
+            if file_format == "csv":
+                self.main_app.df.to_csv(export_path, index=False)
+            elif file_format == "xlsx":
+                self.main_app.df.to_excel(export_path, index=False, engine="openpyxl")
+            else:
+                print(self.localizer.get_string(37))
+                return False, self.main_app.df
+
+            if export_path.exists():
+                print(self.localizer.get_string(38).format(export_path))
+                return True, self.main_app.df
+
+            print("Ошибка: файл не был сохранен!")
+            return False, self.main_app.df
+        except Exception as e:
+            print(f"{self.localizer.get_string(39)}: {str(e)}")
+            return False, self.main_app.df</code></pre>
+</details>
+<div class="desc"><p>Обрабатывает операции импорта/экспорта данных.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект для локализации текстов</dd>
+<dt><strong><code>main_app</code></strong></dt>
+<dd>Ссылка на главное приложение для доступа к данным</dd>
+</dl>
+<p>Инициализирует импортер/экспортер.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект локализации для получения текстов интерфейса</dd>
+<dt><strong><code>main_app</code></strong></dt>
+<dd>Ссылка на главное приложение</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="data_importer_exporter.DataImporterExporter.show_menu"><code class="name flex">
+<span>def <span class="ident">show_menu</span></span>(<span>self) ‑&gt; Tuple[bool, pandas.core.frame.DataFrame]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_menu(self) -&gt; Tuple[bool, pd.DataFrame]:
+    """Отображает меню импорта/экспорта и обрабатывает выбор пользователя.
+
+    Returns:
+        Tuple[bool, pd.DataFrame]:
+            - bool: Успешность операции
+            - pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+
+    Menu Options:
+        1. Импорт с локального диска
+        2. Импорт с Kaggle
+        3. Экспорт данных
+        4. Вернуться
+    """
+    print(f"\n{self.localizer.get_string(20)}")
+    print("1. Импорт с локального диска")
+    print("2. Импорт с Kaggle")
+    print("3. Экспорт данных")
+    print("4. Вернуться")
+
+    try:
+        choice = int(input("Выберите действие: "))
+        if choice == 1:
+            return self._local_import()
+        elif choice == 2:
+            return self._kaggle_import()
+        elif choice == 3:
+            return self._export_data()
+        return False, pd.DataFrame()
+    except ValueError:
+        print(self.localizer.get_string(9))
+        return False, pd.DataFrame()</code></pre>
+</details>
+<div class="desc"><p>Отображает меню импорта/экспорта и обрабатывает выбор пользователя.</p>
+<h2 id="returns">Returns</h2>
+<p>Tuple[bool, pd.DataFrame]:
+- bool: Успешность операции
+- pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+Menu Options:
+1. Импорт с локального диска
+2. Импорт с Kaggle
+3. Экспорт данных
+4. Вернуться</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article></div><div class_="module-section" id="data_table_viewer"><h2>data_table_viewer</h2><article id="content">
+<header>
+<h1 class="title">Module <code>data_table_viewer</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль для просмотра и фильтрации табличных данных.</p>
+<p>Особенности:
+- Постраничный вывод с навигацией
+- Интерактивная фильтрация по столбцам
+- Сортировка результатов</p>
+<p>Классы:
+DataFrameViewer: Обеспечивает функциональность просмотра таблиц.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="data_table_viewer.DataFrameViewer"><code class="flex name class">
+<span>class <span class="ident">DataFrameViewer</span></span>
+<span>(</span><span>localizer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataFrameViewer:
+    """Реализует интерфейс для работы с табличными данными.
+
+    Attributes:
+        localizer: Объект локализации для текстов интерфейса
+        page_size: Количество строк на странице при постраничном выводе
+    """
+
+    def __init__(self, localizer):
+        """Инициализирует просмотрщик таблиц.
+
+        Args:
+            localizer: Объект для получения локализованных строк
+        """
+        self.localizer = localizer
+        self.page_size = 20
+
+    def show_menu(self, df: pd.DataFrame):
+        """Отображает главное меню просмотра таблицы.
+
+        Args:
+            df: DataFrame для просмотра
+
+        Menu Options:
+            1. Полный просмотр (постраничный)
+            2. Фильтрация данных
+            3. Вернуться
+        """
+        while True:
+            print(f"\n{self.localizer.get_string(41)}")
+            print("1. Полный просмотр")
+            print("2. Фильтрация данных")
+            print("3. Вернуться")
+
+            try:
+                choice = int(input("Выберите действие: "))
+                if choice == 1:
+                    self._show_full_data(df)
+                elif choice == 2:
+                    self._filter_data(df)
+                else:
+                    return
+            except ValueError:
+                print(self.localizer.get_string(9))
+
+    def _show_full_data(self, df: pd.DataFrame):
+        """Выводит данные постранично с возможностью навигации.
+
+        Args:
+            df: DataFrame для отображения
+
+        Features:
+            - Показывает общее количество строк
+            - По 20 строк на страницу
+            - Запрос подтверждения для продолжения
+        """
+        print(f"\n{self.localizer.get_string(42)}: {len(df)}")
+        for i in range(0, len(df), self.page_size):
+            print(tabulate(df.iloc[i:i + self.page_size], headers="keys", tablefmt="psql"))
+            if input(f"{self.localizer.get_string(43)} (y/n): ").lower() != "y":
+                break
+
+    def _filter_data(self, df: pd.DataFrame):
+        """Фильтрует данные по интерактивному сценарию.
+
+        Workflow:
+            1. Выбор столбцов для отображения
+            2. Фильтрация по значению в столбце
+            3. Сортировка результатов
+
+        Args:
+            df: Исходный DataFrame для фильтрации
+
+        Output:
+            Выводит отфильтрованную таблицу через tabulate
+        """
+        print("\n=== Фильтрация данных ===")
+        print("Доступные столбцы:", ', '.join(df.columns))
+
+        try:
+            # Этап 1: Выбор столбцов
+            columns_to_show = input(
+                "Введите столбцы для отображения (через запятую, или оставьте пустым для всех): ").strip()
+            if columns_to_show:
+                columns = [col.strip() for col in columns_to_show.split(',')]
+                df = df[columns]
+
+            # Этап 2: Фильтрация
+            print("\n[Шаг 1/2] Фильтрация...")
+            filter_column = input("Введите столбец для фильтрации: ").strip()
+            if filter_column not in df.columns:
+                print("Ошибка: столбец не найден!")
+                return
+
+            filter_value = input(f"Введите значение для фильтрации ({filter_column}): ").strip()
+            filtered_df = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
+
+            # Этап 3: Сортировка
+            print("\n[Шаг 2/2] Сортировка...")
+            sort_column = input("Введите столбец для сортировки (оставьте пустым, если не нужно): ").strip()
+            if sort_column and sort_column in filtered_df.columns:
+                ascending = input("Сортировать по возрастанию (y/n)? ").strip().lower() == 'y'
+                filtered_df = filtered_df.sort_values(by=sort_column, ascending=ascending)
+
+            # Отображение результатов
+            print("\nИдет обработка данных...")
+            self._show_filtered_data(filtered_df)
+        except Exception as e:
+            print(f"Ошибка: {str(e)}")
+
+    def _show_filtered_data(self, filtered_df: pd.DataFrame):
+        """Отображает отфильтрованные данные в табличном формате.
+
+        Args:
+            filtered_df: DataFrame после применения фильтров
+
+        Handles:
+            - Случай пустого DataFrame
+            - Красивое форматирование через tabulate
+        """
+        if filtered_df.empty:
+            print("Нет данных, соответствующих фильтру.")
+            return
+
+        print(f"\nРезультаты фильтрации ({len(filtered_df)} записей):")
+        print(tabulate(filtered_df, headers="keys", tablefmt="psql"))</code></pre>
+</details>
+<div class="desc"><p>Реализует интерфейс для работы с табличными данными.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект локализации для текстов интерфейса</dd>
+<dt><strong><code>page_size</code></strong></dt>
+<dd>Количество строк на странице при постраничном выводе</dd>
+</dl>
+<p>Инициализирует просмотрщик таблиц.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект для получения локализованных строк</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="data_table_viewer.DataFrameViewer.show_menu"><code class="name flex">
+<span>def <span class="ident">show_menu</span></span>(<span>self, df: pandas.core.frame.DataFrame)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_menu(self, df: pd.DataFrame):
+    """Отображает главное меню просмотра таблицы.
+
+    Args:
+        df: DataFrame для просмотра
+
+    Menu Options:
+        1. Полный просмотр (постраничный)
+        2. Фильтрация данных
+        3. Вернуться
+    """
+    while True:
+        print(f"\n{self.localizer.get_string(41)}")
+        print("1. Полный просмотр")
+        print("2. Фильтрация данных")
+        print("3. Вернуться")
+
+        try:
+            choice = int(input("Выберите действие: "))
+            if choice == 1:
+                self._show_full_data(df)
+            elif choice == 2:
+                self._filter_data(df)
+            else:
+                return
+        except ValueError:
+            print(self.localizer.get_string(9))</code></pre>
+</details>
+<div class="desc"><p>Отображает главное меню просмотра таблицы.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>df</code></strong></dt>
+<dd>DataFrame для просмотра</dd>
+</dl>
+<p>Menu Options:
+1. Полный просмотр (постраничный)
+2. Фильтрация данных
+3. Вернуться</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article></div><div class_="module-section" id="data_visualizer"><h2>data_visualizer</h2><article id="content">
+<header>
+<h1 class="title">Module <code>data_visualizer</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль для визуализации данных через matplotlib.</p>
+<p>Поддерживаемые графики:
+- Столбчатые диаграммы
+- Линейные графики</p>
+<p>Классы:
+DataFrameVisualizer: Управляет построением графиков.</p>
+<p>Пример:
+visualizer = DataFrameVisualizer(localizer)
+visualizer.show_menu(df)</p>
+<p>Требования:
+- matplotlib&gt;=3.0</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="data_visualizer.DataFrameVisualizer"><code class="flex name class">
+<span>class <span class="ident">DataFrameVisualizer</span></span>
+<span>(</span><span>localizer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataFrameVisualizer:
+    def __init__(self, localizer):
+        """Инициализирует визуализатор.
+
+        Args:
+            localizer: Объект локализации для получения текстов интерфейса
+        """
+        self.localizer = localizer
+
+    def show_menu(self, df: pd.DataFrame):
+        """Отображает меню визуализации и обрабатывает выбор пользователя.
+
+        Args:
+            df: DataFrame с данными для визуализации
+
+        Menu Options:
+            1. Столбчатая диаграмма
+            2. Линейный график
+            3. Вернуться
+        """
+        while True:
+            print(f"\n{self.localizer.get_string(48)}")
+            print("1. Столбчатая диаграмма")
+            print("2. Линейный график")
+            print("3. Вернуться")
+
+            try:
+                choice = int(input("Выберите действие: "))
+                if choice == 1:
+                    self._plot_chart(df, "bar")
+                elif choice == 2:
+                    self._plot_chart(df, "line")
+                else:
+                    return
+            except ValueError:
+                print(self.localizer.get_string(9))
+
+    def _plot_chart(self, df: pd.DataFrame, chart_type: str):
+        """Строит график указанного типа.
+
+        Args:
+            df: DataFrame с данными
+            chart_type: Тип графика ('bar' или 'line')
+
+        Steps:
+            1. Запрашивает столбцы для осей
+            2. Валидирует ввод
+            3. Строит график
+
+        Raises:
+            KeyError: Если указаны несуществующие столбцы
+        """
+        print(f"\nДоступные столбцы: {', '.join(df.columns)}")
+        try:
+            x_col = input(f"{self.localizer.get_string(49)}: ").strip()
+            y_col = input(f"{self.localizer.get_string(50)}: ").strip()
+
+            if x_col not in df.columns or y_col not in df.columns:
+                print(self.localizer.get_string(51))
+                return
+
+            plt.figure(figsize=(12, 6))
+            if chart_type == "bar":
+                df.plot.bar(x=x_col, y=y_col, ax=plt.gca())
+            else:
+                df.plot.line(x=x_col, y=y_col, ax=plt.gca())
+
+            plt.title(f"{y_col} vs {x_col}")
+            plt.tight_layout()
+            plt.show(block=False)
+        except Exception as e:
+            print(f"{self.localizer.get_string(52)}: {str(e)}")</code></pre>
+</details>
+<div class="desc"><p>Инициализирует визуализатор.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект локализации для получения текстов интерфейса</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="data_visualizer.DataFrameVisualizer.show_menu"><code class="name flex">
+<span>def <span class="ident">show_menu</span></span>(<span>self, df: pandas.core.frame.DataFrame)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_menu(self, df: pd.DataFrame):
+    """Отображает меню визуализации и обрабатывает выбор пользователя.
+
+    Args:
+        df: DataFrame с данными для визуализации
+
+    Menu Options:
+        1. Столбчатая диаграмма
+        2. Линейный график
+        3. Вернуться
+    """
+    while True:
+        print(f"\n{self.localizer.get_string(48)}")
+        print("1. Столбчатая диаграмма")
+        print("2. Линейный график")
+        print("3. Вернуться")
+
+        try:
+            choice = int(input("Выберите действие: "))
+            if choice == 1:
+                self._plot_chart(df, "bar")
+            elif choice == 2:
+                self._plot_chart(df, "line")
+            else:
+                return
+        except ValueError:
+            print(self.localizer.get_string(9))</code></pre>
+</details>
+<div class="desc"><p>Отображает меню визуализации и обрабатывает выбор пользователя.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>df</code></strong></dt>
+<dd>DataFrame с данными для визуализации</dd>
+</dl>
+<p>Menu Options:
+1. Столбчатая диаграмма
+2. Линейный график
+3. Вернуться</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article></div><div class_="module-section" id="localization"><h2>localization</h2><article id="content">
+<header>
+<h1 class="title">Module <code>localization</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль локализации строк интерфейса.</p>
+<p>Функционал:
+- Загрузка строк из файла
+- Резервные строки по умолчанию
+- Поддержка динамического переключения языка</p>
+<p>Классы:
+Localizer: Основной класс для работы с локализацией.</p>
+<p>Формат файла локализации:
+ID:Текст (например, '0:Добро пожаловать')</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="localization.Localizer"><code class="flex name class">
+<span>class <span class="ident">Localizer</span></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Localizer:
+    def __init__(self):
+        """Инициализирует локализатор.
+
+        Автоматически загружает строки из файла или использует значения по умолчанию.
+        """
+        self.localization = {}
+        self._load_localization()
+
+    def _load_localization(self):
+        """Загружает локализацию из файла.
+
+        File Path:
+            files_for_the_project/localization/RU.txt
+
+        Format:
+            ID:Text (one per line)
+
+        Falls back:
+            К значениям по умолчанию при ошибках
+        """
+        try:
+            path = Path("files_for_the_project/localization/RU.txt")
+            with open(path, 'r', encoding='utf-8') as f:
+                lines = [line.strip() for line in f.readlines() if line.strip()]
+                self.localization = {
+                    int(line.split(":")[0]): ":".join(line.split(":")[1:]).strip()
+                    for line in lines
+                }
+        except FileNotFoundError:
+            print("Файл локализации не найден! Используются значения по умолчанию")
+            self._load_default_strings()
+        except Exception as e:
+            print(f"Ошибка загрузки локализации: {str(e)}")
+            self._load_default_strings()
+
+    def _load_default_strings(self):
+        """Устанавливает резервные строки локализации по умолчанию."""
+        self.localization = {
+            0: "Добро пожаловать в систему анализа медицинских данных!",
+            # ... остальные строки ...
+        }
+
+    def get_string(self, string_id: int) -&gt; str:
+        """Возвращает локализованную строку по ID.
+
+        Args:
+            string_id: Числовой идентификатор строки
+
+        Returns:
+            str: Локализованный текст или сообщение об ошибке
+
+        Example:
+            "Добро пожаловать в систему анализа медицинских данных!"
+        """
+        return self.localization.get(string_id, f"[Ошибка локализации: ID {string_id}]")</code></pre>
+</details>
+<div class="desc"><p>Инициализирует локализатор.</p>
+<p>Автоматически загружает строки из файла или использует значения по умолчанию.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="localization.Localizer.get_string"><code class="name flex">
+<span>def <span class="ident">get_string</span></span>(<span>self, string_id: int) ‑&gt; str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_string(self, string_id: int) -&gt; str:
+    """Возвращает локализованную строку по ID.
+
+    Args:
+        string_id: Числовой идентификатор строки
+
+    Returns:
+        str: Локализованный текст или сообщение об ошибке
+
+    Example:
+        "Добро пожаловать в систему анализа медицинских данных!"
+    """
+    return self.localization.get(string_id, f"[Ошибка локализации: ID {string_id}]")</code></pre>
+</details>
+<div class="desc"><p>Возвращает локализованную строку по ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>string_id</code></strong></dt>
+<dd>Числовой идентификатор строки</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Локализованный текст или сообщение об ошибке</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>"Добро пожаловать в систему анализа медицинских данных!"</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article></div></div>
+</body>
+</html>

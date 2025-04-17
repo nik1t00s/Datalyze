@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>data_importer_exporter API documentation</title>
+<meta name="description" content="Модуль для импорта и экспорта данных …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_importer_exporter</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль для импорта и экспорта данных.</p>
+<p>Поддерживает:
+- Локальный импорт из CSV/XLSX
+- Импорт с Kaggle API
+- Экспорт в CSV/XLSX</p>
+<p>Классы:
+DataImporterExporter: Основной класс для работы с импортом/экспортом данных.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="data_importer_exporter.DataImporterExporter"><code class="flex name class">
+<span>class <span class="ident">DataImporterExporter</span></span>
+<span>(</span><span>localizer, main_app)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataImporterExporter:
+    &#34;&#34;&#34;Обрабатывает операции импорта/экспорта данных.
+
+    Attributes:
+        localizer: Объект для локализации текстов
+        main_app: Ссылка на главное приложение для доступа к данным
+    &#34;&#34;&#34;
+
+    def __init__(self, localizer, main_app):
+        &#34;&#34;&#34;Инициализирует импортер/экспортер.
+
+        Args:
+            localizer: Объект локализации для получения текстов интерфейса
+            main_app: Ссылка на главное приложение
+        &#34;&#34;&#34;
+        self.localizer = localizer
+        self.main_app = main_app
+
+    def show_menu(self) -&gt; Tuple[bool, pd.DataFrame]:
+        &#34;&#34;&#34;Отображает меню импорта/экспорта и обрабатывает выбор пользователя.
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+
+        Menu Options:
+            1. Импорт с локального диска
+            2. Импорт с Kaggle
+            3. Экспорт данных
+            4. Вернуться
+        &#34;&#34;&#34;
+        print(f&#34;\n{self.localizer.get_string(20)}&#34;)
+        print(&#34;1. Импорт с локального диска&#34;)
+        print(&#34;2. Импорт с Kaggle&#34;)
+        print(&#34;3. Экспорт данных&#34;)
+        print(&#34;4. Вернуться&#34;)
+
+        try:
+            choice = int(input(&#34;Выберите действие: &#34;))
+            if choice == 1:
+                return self._local_import()
+            elif choice == 2:
+                return self._kaggle_import()
+            elif choice == 3:
+                return self._export_data()
+            return False, pd.DataFrame()
+        except ValueError:
+            print(self.localizer.get_string(9))
+            return False, pd.DataFrame()
+
+    def _local_import(self) -&gt; Tuple[bool, pd.DataFrame]:
+        &#34;&#34;&#34;Загружает данные из локального файла.
+
+        Supported Formats:
+            - CSV (.csv)
+            - Excel (.xlsx, .xls)
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные
+
+        Raises:
+            KeyboardInterrupt: При отмене операции пользователем
+        &#34;&#34;&#34;
+        try:
+            path = input(f&#34;{self.localizer.get_string(21)} (с именем файла): &#34;).strip()
+            file_path = Path(path)
+
+            if not file_path.exists():
+                print(self.localizer.get_string(22).format(file_path))
+                return False, pd.DataFrame()
+
+            try:
+                if file_path.suffix == &#39;.csv&#39;:
+                    df = pd.read_csv(file_path)
+                elif file_path.suffix in (&#39;.xlsx&#39;, &#39;.xls&#39;):
+                    df = pd.read_excel(file_path)
+                else:
+                    print(self.localizer.get_string(23))
+                    return False, pd.DataFrame()
+
+                return True, df
+            except Exception as e:
+                print(f&#34;{self.localizer.get_string(25)}: {str(e)}&#34;)
+                return False, pd.DataFrame()
+        except KeyboardInterrupt:
+            print(&#34;\nОперация отменена.&#34;)
+            return False, pd.DataFrame()
+
+    def _kaggle_import(self) -&gt; Tuple[bool, pd.DataFrame]:
+        &#34;&#34;&#34;Загружает датасет с Kaggle через API.
+
+        Workflow:
+            1. Запрашивает URL датасета
+            2. Аутентифицируется в Kaggle API
+            3. Скачивает и распаковывает архив
+            4. Загружает первый найденный CSV-файл
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Загруженные данные
+
+        Raises:
+            Exception: При ошибках API или загрузки файлов
+        &#34;&#34;&#34;
+        print(f&#34;\n{self.localizer.get_string(26)}&#34;)
+        print(f&#34;{self.localizer.get_string(27)}\n&#34;)
+
+        dataset_url = input(f&#34;{self.localizer.get_string(28)}: &#34;).strip()
+
+        try:
+            api = KaggleApi()
+            api.authenticate()
+
+            parts = dataset_url.split(&#39;/&#39;)
+            dataset_name = parts[-1]
+            user = parts[-2]
+
+            print(self.localizer.get_string(30))
+            api.dataset_download_files(f&#34;{user}/{dataset_name}&#34;, path=&#34;temp&#34;, unzip=True)
+
+            csv_files = list(Path(&#34;temp&#34;).glob(&#34;*.csv&#34;))
+
+            if csv_files:
+                df = pd.read_csv(csv_files[0])
+                shutil.rmtree(&#34;temp&#34;)
+                return True, df
+            return False, pd.DataFrame()
+        except Exception as e:
+            print(f&#34;{self.localizer.get_string(33)}: {str(e)}&#34;)
+            return False, pd.DataFrame()
+
+    def _export_data(self) -&gt; Tuple[bool, pd.DataFrame]:
+        &#34;&#34;&#34;Экспортирует данные в файл с проверкой пути.
+
+        Supported Formats:
+            - CSV (.csv)
+            - Excel (.xlsx)
+
+        Returns:
+            Tuple[bool, pd.DataFrame]:
+                - bool: Успешность операции
+                - pd.DataFrame: Текущие данные (не изменяются)
+
+        Raises:
+            Exception: При ошибках сохранения файла
+        &#34;&#34;&#34;
+        if self.main_app.df.empty:
+            print(self.localizer.get_string(10))
+            return False, self.main_app.df
+
+        try:
+            path = input(f&#34;{self.localizer.get_string(34)}: &#34;).strip()
+            filename = input(f&#34;{self.localizer.get_string(35)}: &#34;).strip()
+            file_format = input(f&#34;{self.localizer.get_string(36)}: &#34;).lower().strip()
+
+            export_path = Path(path) / f&#34;{filename}.{file_format}&#34;
+            if not export_path.parent.exists():
+                print(f&#34;Ошибка: путь &#39;{export_path.parent}&#39; не существует!&#34;)
+                return False, self.main_app.df
+
+            export_path.parent.mkdir(parents=True, exist_ok=True)
+            if file_format == &#34;csv&#34;:
+                self.main_app.df.to_csv(export_path, index=False)
+            elif file_format == &#34;xlsx&#34;:
+                self.main_app.df.to_excel(export_path, index=False, engine=&#34;openpyxl&#34;)
+            else:
+                print(self.localizer.get_string(37))
+                return False, self.main_app.df
+
+            if export_path.exists():
+                print(self.localizer.get_string(38).format(export_path))
+                return True, self.main_app.df
+
+            print(&#34;Ошибка: файл не был сохранен!&#34;)
+            return False, self.main_app.df
+        except Exception as e:
+            print(f&#34;{self.localizer.get_string(39)}: {str(e)}&#34;)
+            return False, self.main_app.df</code></pre>
+</details>
+<div class="desc"><p>Обрабатывает операции импорта/экспорта данных.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект для локализации текстов</dd>
+<dt><strong><code>main_app</code></strong></dt>
+<dd>Ссылка на главное приложение для доступа к данным</dd>
+</dl>
+<p>Инициализирует импортер/экспортер.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект локализации для получения текстов интерфейса</dd>
+<dt><strong><code>main_app</code></strong></dt>
+<dd>Ссылка на главное приложение</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="data_importer_exporter.DataImporterExporter.show_menu"><code class="name flex">
+<span>def <span class="ident">show_menu</span></span>(<span>self) ‑> Tuple[bool, pandas.core.frame.DataFrame]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_menu(self) -&gt; Tuple[bool, pd.DataFrame]:
+    &#34;&#34;&#34;Отображает меню импорта/экспорта и обрабатывает выбор пользователя.
+
+    Returns:
+        Tuple[bool, pd.DataFrame]:
+            - bool: Успешность операции
+            - pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+
+    Menu Options:
+        1. Импорт с локального диска
+        2. Импорт с Kaggle
+        3. Экспорт данных
+        4. Вернуться
+    &#34;&#34;&#34;
+    print(f&#34;\n{self.localizer.get_string(20)}&#34;)
+    print(&#34;1. Импорт с локального диска&#34;)
+    print(&#34;2. Импорт с Kaggle&#34;)
+    print(&#34;3. Экспорт данных&#34;)
+    print(&#34;4. Вернуться&#34;)
+
+    try:
+        choice = int(input(&#34;Выберите действие: &#34;))
+        if choice == 1:
+            return self._local_import()
+        elif choice == 2:
+            return self._kaggle_import()
+        elif choice == 3:
+            return self._export_data()
+        return False, pd.DataFrame()
+    except ValueError:
+        print(self.localizer.get_string(9))
+        return False, pd.DataFrame()</code></pre>
+</details>
+<div class="desc"><p>Отображает меню импорта/экспорта и обрабатывает выбор пользователя.</p>
+<h2 id="returns">Returns</h2>
+<p>Tuple[bool, pd.DataFrame]:
+- bool: Успешность операции
+- pd.DataFrame: Загруженные данные (пустой DataFrame при ошибке)
+Menu Options:
+1. Импорт с локального диска
+2. Импорт с Kaggle
+3. Экспорт данных
+4. Вернуться</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="data_importer_exporter.DataImporterExporter" href="#data_importer_exporter.DataImporterExporter">DataImporterExporter</a></code></h4>
+<ul class="">
+<li><code><a title="data_importer_exporter.DataImporterExporter.show_menu" href="#data_importer_exporter.DataImporterExporter.show_menu">show_menu</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

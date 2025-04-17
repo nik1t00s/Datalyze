@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>data_table_viewer API documentation</title>
+<meta name="description" content="Модуль для просмотра и фильтрации табличных данных …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>data_table_viewer</code></h1>
+</header>
+<section id="section-intro">
+<p>Модуль для просмотра и фильтрации табличных данных.</p>
+<p>Особенности:
+- Постраничный вывод с навигацией
+- Интерактивная фильтрация по столбцам
+- Сортировка результатов</p>
+<p>Классы:
+DataFrameViewer: Обеспечивает функциональность просмотра таблиц.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="data_table_viewer.DataFrameViewer"><code class="flex name class">
+<span>class <span class="ident">DataFrameViewer</span></span>
+<span>(</span><span>localizer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataFrameViewer:
+    &#34;&#34;&#34;Реализует интерфейс для работы с табличными данными.
+
+    Attributes:
+        localizer: Объект локализации для текстов интерфейса
+        page_size: Количество строк на странице при постраничном выводе
+    &#34;&#34;&#34;
+
+    def __init__(self, localizer):
+        &#34;&#34;&#34;Инициализирует просмотрщик таблиц.
+
+        Args:
+            localizer: Объект для получения локализованных строк
+        &#34;&#34;&#34;
+        self.localizer = localizer
+        self.page_size = 20
+
+    def show_menu(self, df: pd.DataFrame):
+        &#34;&#34;&#34;Отображает главное меню просмотра таблицы.
+
+        Args:
+            df: DataFrame для просмотра
+
+        Menu Options:
+            1. Полный просмотр (постраничный)
+            2. Фильтрация данных
+            3. Вернуться
+        &#34;&#34;&#34;
+        while True:
+            print(f&#34;\n{self.localizer.get_string(41)}&#34;)
+            print(&#34;1. Полный просмотр&#34;)
+            print(&#34;2. Фильтрация данных&#34;)
+            print(&#34;3. Вернуться&#34;)
+
+            try:
+                choice = int(input(&#34;Выберите действие: &#34;))
+                if choice == 1:
+                    self._show_full_data(df)
+                elif choice == 2:
+                    self._filter_data(df)
+                else:
+                    return
+            except ValueError:
+                print(self.localizer.get_string(9))
+
+    def _show_full_data(self, df: pd.DataFrame):
+        &#34;&#34;&#34;Выводит данные постранично с возможностью навигации.
+
+        Args:
+            df: DataFrame для отображения
+
+        Features:
+            - Показывает общее количество строк
+            - По 20 строк на страницу
+            - Запрос подтверждения для продолжения
+        &#34;&#34;&#34;
+        print(f&#34;\n{self.localizer.get_string(42)}: {len(df)}&#34;)
+        for i in range(0, len(df), self.page_size):
+            print(tabulate(df.iloc[i:i + self.page_size], headers=&#34;keys&#34;, tablefmt=&#34;psql&#34;))
+            if input(f&#34;{self.localizer.get_string(43)} (y/n): &#34;).lower() != &#34;y&#34;:
+                break
+
+    def _filter_data(self, df: pd.DataFrame):
+        &#34;&#34;&#34;Фильтрует данные по интерактивному сценарию.
+
+        Workflow:
+            1. Выбор столбцов для отображения
+            2. Фильтрация по значению в столбце
+            3. Сортировка результатов
+
+        Args:
+            df: Исходный DataFrame для фильтрации
+
+        Output:
+            Выводит отфильтрованную таблицу через tabulate
+        &#34;&#34;&#34;
+        print(&#34;\n=== Фильтрация данных ===&#34;)
+        print(&#34;Доступные столбцы:&#34;, &#39;, &#39;.join(df.columns))
+
+        try:
+            # Этап 1: Выбор столбцов
+            columns_to_show = input(
+                &#34;Введите столбцы для отображения (через запятую, или оставьте пустым для всех): &#34;).strip()
+            if columns_to_show:
+                columns = [col.strip() for col in columns_to_show.split(&#39;,&#39;)]
+                df = df[columns]
+
+            # Этап 2: Фильтрация
+            print(&#34;\n[Шаг 1/2] Фильтрация...&#34;)
+            filter_column = input(&#34;Введите столбец для фильтрации: &#34;).strip()
+            if filter_column not in df.columns:
+                print(&#34;Ошибка: столбец не найден!&#34;)
+                return
+
+            filter_value = input(f&#34;Введите значение для фильтрации ({filter_column}): &#34;).strip()
+            filtered_df = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
+
+            # Этап 3: Сортировка
+            print(&#34;\n[Шаг 2/2] Сортировка...&#34;)
+            sort_column = input(&#34;Введите столбец для сортировки (оставьте пустым, если не нужно): &#34;).strip()
+            if sort_column and sort_column in filtered_df.columns:
+                ascending = input(&#34;Сортировать по возрастанию (y/n)? &#34;).strip().lower() == &#39;y&#39;
+                filtered_df = filtered_df.sort_values(by=sort_column, ascending=ascending)
+
+            # Отображение результатов
+            print(&#34;\nИдет обработка данных...&#34;)
+            self._show_filtered_data(filtered_df)
+        except Exception as e:
+            print(f&#34;Ошибка: {str(e)}&#34;)
+
+    def _show_filtered_data(self, filtered_df: pd.DataFrame):
+        &#34;&#34;&#34;Отображает отфильтрованные данные в табличном формате.
+
+        Args:
+            filtered_df: DataFrame после применения фильтров
+
+        Handles:
+            - Случай пустого DataFrame
+            - Красивое форматирование через tabulate
+        &#34;&#34;&#34;
+        if filtered_df.empty:
+            print(&#34;Нет данных, соответствующих фильтру.&#34;)
+            return
+
+        print(f&#34;\nРезультаты фильтрации ({len(filtered_df)} записей):&#34;)
+        print(tabulate(filtered_df, headers=&#34;keys&#34;, tablefmt=&#34;psql&#34;))</code></pre>
+</details>
+<div class="desc"><p>Реализует интерфейс для работы с табличными данными.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект локализации для текстов интерфейса</dd>
+<dt><strong><code>page_size</code></strong></dt>
+<dd>Количество строк на странице при постраничном выводе</dd>
+</dl>
+<p>Инициализирует просмотрщик таблиц.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>localizer</code></strong></dt>
+<dd>Объект для получения локализованных строк</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="data_table_viewer.DataFrameViewer.show_menu"><code class="name flex">
+<span>def <span class="ident">show_menu</span></span>(<span>self, df: pandas.core.frame.DataFrame)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_menu(self, df: pd.DataFrame):
+    &#34;&#34;&#34;Отображает главное меню просмотра таблицы.
+
+    Args:
+        df: DataFrame для просмотра
+
+    Menu Options:
+        1. Полный просмотр (постраничный)
+        2. Фильтрация данных
+        3. Вернуться
+    &#34;&#34;&#34;
+    while True:
+        print(f&#34;\n{self.localizer.get_string(41)}&#34;)
+        print(&#34;1. Полный просмотр&#34;)
+        print(&#34;2. Фильтрация данных&#34;)
+        print(&#34;3. Вернуться&#34;)
+
+        try:
+            choice = int(input(&#34;Выберите действие: &#34;))
+            if choice == 1:
+                self._show_full_data(df)
+            elif choice == 2:
+                self._filter_data(df)
+            else:
+                return
+        except ValueError:
+            print(self.localizer.get_string(9))</code></pre>
+</details>
+<div class="desc"><p>Отображает главное меню просмотра таблицы.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>df</code></strong></dt>
+<dd>DataFrame для просмотра</dd>
+</dl>
+<p>Menu Options:
+1. Полный просмотр (постраничный)
+2. Фильтрация данных
+3. Вернуться</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="data_table_viewer.DataFrameViewer" href="#data_table_viewer.DataFrameViewer">DataFrameViewer</a></code></h4>
+<ul class="">
+<li><code><a title="data_table_viewer.DataFrameViewer.show_menu" href="#data_table_viewer.DataFrameViewer.show_menu">show_menu</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
