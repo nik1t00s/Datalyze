@@ -21,12 +21,27 @@ import matplotlib as mpl
 
 mpl.rcParams['agg.path.chunksize'] = 10000
 
+
 class DataFrameVisualizer:
     def __init__(self, localizer):
+        """Инициализирует визуализатор.
+
+        Args:
+            localizer: Объект локализации для получения текстов интерфейса
+        """
         self.localizer = localizer
 
     def show_menu(self, df: pd.DataFrame):
-        """Меню визуализации"""
+        """Отображает меню визуализации и обрабатывает выбор пользователя.
+
+        Args:
+            df: DataFrame с данными для визуализации
+
+        Menu Options:
+            1. Столбчатая диаграмма
+            2. Линейный график
+            3. Вернуться
+        """
         while True:
             print(f"\n{self.localizer.get_string(48)}")
             print("1. Столбчатая диаграмма")
@@ -45,14 +60,19 @@ class DataFrameVisualizer:
                 print(self.localizer.get_string(9))
 
     def _plot_chart(self, df: pd.DataFrame, chart_type: str):
-        """Построение графика указанного типа.
-    
+        """Строит график указанного типа.
+
         Args:
-            df: DataFrame с данными.
-            chart_type: Тип графика ('bar' или 'line').
-        
+            df: DataFrame с данными
+            chart_type: Тип графика ('bar' или 'line')
+
+        Steps:
+            1. Запрашивает столбцы для осей
+            2. Валидирует ввод
+            3. Строит график
+
         Raises:
-            KeyError: Если указаны неверные столбцы.
+            KeyError: Если указаны несуществующие столбцы
         """
         print(f"\nДоступные столбцы: {', '.join(df.columns)}")
         try:
@@ -67,10 +87,10 @@ class DataFrameVisualizer:
             if chart_type == "bar":
                 df.plot.bar(x=x_col, y=y_col, ax=plt.gca())
             else:
-               df.plot.line(x=x_col, y=y_col, ax=plt.gca())
+                df.plot.line(x=x_col, y=y_col, ax=plt.gca())
 
             plt.title(f"{y_col} vs {x_col}")
             plt.tight_layout()
-            plt.show(block = False)
+            plt.show(block=False)
         except Exception as e:
             print(f"{self.localizer.get_string(52)}: {str(e)}")
