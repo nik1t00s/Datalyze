@@ -82,6 +82,15 @@ class DataFrameVisualizer:
             if x_col not in df.columns or y_col not in df.columns:
                 print(self.localizer.get_string(51))
                 return
+            
+            if chart_type == "line":
+                if not pd.api.types.is_numeric_dtype(df[y_col]):
+                    print("Ошибка: для линейного графика выберите числовой столбец для оси Y!")
+                    return
+                    
+                if len(df) > 200:
+                    print("Используется 200 случайных записей для предотвращения зависаний.")
+                    df = df.sample(n=200)
 
             plt.figure(figsize=(12, 6))
             if chart_type == "bar":
