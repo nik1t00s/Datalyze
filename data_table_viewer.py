@@ -49,14 +49,12 @@ def _filter_data(df: pd.DataFrame):
     print("Доступные столбцы:", ', '.join(df.columns))
 
     try:
-        # Этап 1: Выбор столбцов
         columns_to_show = input(
             "Введите столбцы для отображения (через запятую, или оставьте пустым для всех): ").strip()
         if columns_to_show:
             columns = [col.strip() for col in columns_to_show.split(',')]
             df = df[columns]
 
-        # Этап 2: Фильтрация
         print("\n[Шаг 1/2] Фильтрация...")
         filter_column = input("Введите столбец для фильтрации: ").strip()
         if filter_column not in df.columns:
@@ -66,14 +64,12 @@ def _filter_data(df: pd.DataFrame):
         filter_value = input(f"Введите значение для фильтрации ({filter_column}): ").strip()
         filtered_df = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
 
-        # Этап 3: Сортировка
         print("\n[Шаг 2/2] Сортировка...")
         sort_column = input("Введите столбец для сортировки (оставьте пустым, если не нужно): ").strip()
         if sort_column and sort_column in filtered_df.columns:
             ascending = input("Сортировать по возрастанию (y/n)? ").strip().lower() == 'y'
             filtered_df = filtered_df.sort_values(by=sort_column, ascending=ascending)
 
-        # Отображение результатов
         print("\nИдет обработка данных...")
         _show_filtered_data(filtered_df)
     except Exception as e:

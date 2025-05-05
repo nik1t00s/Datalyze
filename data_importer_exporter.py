@@ -15,7 +15,7 @@ from typing import Tuple
 from kaggle.api.kaggle_api_extended import KaggleApi
 import shutil
 
-shutil.rmtree("temp", ignore_errors=True)  # Удаление временной папки при инициализации
+shutil.rmtree("temp", ignore_errors=True)
 
 
 class DataImporterExporter:

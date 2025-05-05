@@ -195,6 +195,35 @@ class MainApplication:
             print("Модель сохранена в cancer_model.pkl")
         except Exception as e:
             print(f"Ошибка: {str(e)}")
+    def _predict_mutation_type(self):
+        """Прогнозирует тип мутации."""
+        if self.df.empty:
+            print("Ошибка: данные не загружены!")
+            return
+        
+        if 'Mutation_Type' not in self.df.columns:
+            print("Ошибка: столбец 'Mutation_Type' отсутствует в данных!")
+            return
+        
+        try:
+            hidden_layers = tuple(map(int, input("Введите размеры скрытых слоёв через запятую (например, 100,50): ").split(',')))
+            activation = input("Введите функцию активации (relu, logistic, tanh): ")
+            learning_rate = float(input("Введите скорость обучения (например, 0.001): "))
+            
+            predictor = CancerPredictor(
+                hidden_layer_sizes=hidden_layers,
+                activation=activation,
+                learning_rate_init=learning_rate
+            )
+            X_train, X_test, y_train, y_test = predictor.preprocess_data(self.df, "Mutation_Type")
+            predictor.train(X_train, y_train)
+            accuracy = predictor.evaluate(X_test, y_test)
+            print(f"\nТочность модели: {accuracy:.2f}")
+            
+            predictor.save_model("mutation_model.pkl")
+            print("Модель сохранена в mutation_model.pkl")
+        except Exception as e:
+            print(f"Ошибка: {str(e)}")
 
     def _exit_application(self):
         """Выводит сообщение о завершении работы."""
