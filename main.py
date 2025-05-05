@@ -21,7 +21,7 @@ from localization import Localizer
 from data_table_viewer import DataFrameViewer
 from data_visualizer import DataFrameVisualizer
 import pandas as pd
-
+from neural_network import CancerPredictor
 
 class MainApplication:
     def __init__(self):
@@ -98,6 +98,7 @@ class MainApplication:
         print(f"1 - {self.localizer.get_string(6)}")
         print(f"2 - {self.localizer.get_string(7)}")
         print(f"3 - {self.localizer.get_string(8)}")
+        print(f"4 - Прогнозирование с использованием нейронной сети")
 
     def _get_user_choice(self) -> int:
         """Получает и валидирует выбор пользователя.
@@ -126,7 +127,8 @@ class MainApplication:
         handlers = {
             1: self._handle_data_io,
             2: self._show_data_table,
-            3: self._show_data_charts
+            3: self._show_data_charts,
+            4: self._handle_neural_network
         }
 
         if choice in handlers:
@@ -154,6 +156,45 @@ class MainApplication:
     def _show_data_charts(self):
         """Запускает визуализацию данных."""
         self.visualizer.show_menu(self.df)
+
+    def _handle_neural_network(self):
+        """Меню работы с нейронными сетями."""
+        print("\n=== Нейронные сети ===")
+        print("1. Прогнозирование типа рака")
+        print("2. Прогнозирование типа мутации")
+        print("3. Вернуться")
+        
+        choice = input("Выберите действие: ")
+        if choice == "1":
+            self._predict_cancer_type()
+        elif choice == "2":
+            self._predict_mutation_type()
+
+    def _predict_cancer_type(self):
+        """Прогнозирует тип рака."""
+        if self.df.empty:
+            print("Ошибка: данные не загружены!")
+            return
+        
+        try:
+            hidden_layers = tuple(map(int, input("Введите размеры скрытых слоёв через запятую (например, 100,50): ").split(',')))
+            activation = input("Введите функцию активации (relu, logistic, tanh): ")
+            learning_rate = float(input("Введите скорость обучения (например, 0.001): "))
+            
+            predictor = CancerPredictor(
+                hidden_layer_sizes=hidden_layers,
+                activation=activation,
+                learning_rate_init=learning_rate
+            )
+            X_train, X_test, y_train, y_test = predictor.preprocess_data(self.df, "Cancer_Type")
+            predictor.train(X_train, y_train)
+            accuracy = predictor.evaluate(X_test, y_test)
+            print(f"\nТочность модели: {accuracy:.2f}")
+            
+            predictor.save_model("cancer_model.pkl")
+            print("Модель сохранена в cancer_model.pkl")
+        except Exception as e:
+            print(f"Ошибка: {str(e)}")
 
     def _exit_application(self):
         """Выводит сообщение о завершении работы."""
