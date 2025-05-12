@@ -22,6 +22,7 @@ from data_table_viewer import DataFrameViewer
 from data_visualizer import DataFrameVisualizer
 import pandas as pd
 from neural_network import CancerPredictor
+import numpy as np
 
 class MainApplication:
     def __init__(self):
@@ -162,13 +163,16 @@ class MainApplication:
         print("\n=== Нейронные сети ===")
         print("1. Прогнозирование типа рака")
         print("2. Прогнозирование типа мутации")
-        print("3. Вернуться")
-        
+        print("3. Прогнозировать на новых данных")
+        print("4. Вернуться")
+
         choice = input("Выберите действие: ")
         if choice == "1":
             self._predict_cancer_type()
         elif choice == "2":
             self._predict_mutation_type()
+        elif choice == "3":
+            self._predict_new_data()
 
     def _predict_cancer_type(self):
         """Прогнозирует тип рака."""
@@ -215,7 +219,10 @@ class MainApplication:
                 activation=activation,
                 learning_rate_init=learning_rate
             )
-            X_train, X_test, y_train, y_test = predictor.preprocess_data(self.df, "Mutation_Type")
+            X_train, X_test, y_train, y_test = predictor.preprocess_data(
+                self.df, 
+                target_column='Mutation_Type'  # Указываем целевую переменную
+            )
             predictor.train(X_train, y_train)
             accuracy = predictor.evaluate(X_test, y_test)
             print(f"\nТочность модели: {accuracy:.2f}")
@@ -224,6 +231,79 @@ class MainApplication:
             print("Модель сохранена в mutation_model.pkl")
         except Exception as e:
             print(f"Ошибка: {str(e)}")
+
+
+    def _predict_new_data(self):
+        if self.df.empty:
+            print("Ошибка: данные не загружены!")
+            return
+        
+        try:
+            new_data = {}
+            valid_columns = [col for col in self.df.columns 
+            if col not in ['Cancer_Type', 'Mutation_Type']]  # Исключаем только целевые
+            
+            print("\nВведите значения признаков:")
+            
+            for column in valid_columns:
+                dtype = self.df[column].dtype
+                
+                while True:
+                    try:
+                        value = input(f"{column} ({dtype}): ")
+                        
+                        # Обработка числовых признаков
+                        if np.issubdtype(dtype, np.number):
+                            converted_value = float(value) if '.' in value else int(value)
+                            new_data[column] = [converted_value]
+                        # Обработка категориальных признаков
+                        else:
+                            unique_values = list(map(str, self.df[column].unique()))
+                            if value not in unique_values:
+                                print(f"Допустимые значения: {', '.join(unique_values)}")
+                                continue
+                            new_data[column] = [value]
+                        break
+                    except ValueError:
+                        print(f"Некорректный формат для {column}. Попробуйте снова.")
+
+            # Создаем DataFrame только с необходимыми столбцами
+            new_df = pd.DataFrame(new_data)[valid_columns]
+            # Приводим типы данных
+            for col in valid_columns:
+                new_df[col] = new_df[col].astype(self.df[col].dtype)
+            
+            # Загрузка модели
+            predictor = CancerPredictor.load_model("cancer_model.pkl")
+            
+            # Предобработка данных
+            X_processed, _ = predictor.preprocess_data(new_df)
+            
+            # Прогнозирование
+            cancer_proba = predictor.model.predict_proba(X_processed)
+            
+            # Аналогично для мутаций
+            mutation_predictor = CancerPredictor.load_model("mutation_model.pkl")
+            X_mut_processed, _ = mutation_predictor.preprocess_data(new_df)
+            mutation_proba = mutation_predictor.model.predict_proba(X_mut_processed)
+            
+            # Добавление новых данных
+            self.df = pd.concat([self.df, new_df], ignore_index=True)
+            
+            # Вывод результатов
+            print("\nРезультаты прогноза:")
+            print("Вероятности типов рака:")
+            for cls, prob in zip(cancer_proba.label_encoder.classes_, cancer_proba[0]):
+                print(f"- {cls}: {prob:.2%}")
+                
+            print("\nВероятности типов мутации:")
+            for cls, prob in zip(mutation_proba.label_encoder.classes_, mutation_proba[0]):
+                print(f"- {cls}: {prob:.2%}")
+
+        except Exception as e:
+            print(f"Ошибка прогнозирования: {str(e)}")
+            if 'new_df' in locals() and not new_df.empty:
+                self.df = self.df[:-len(new_df)]
 
     def _exit_application(self):
         """Выводит сообщение о завершении работы."""

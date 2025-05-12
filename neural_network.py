@@ -17,25 +17,52 @@ class CancerPredictor:
             max_iter=200,
             random_state=42
         )
+        # Инициализируйте препроцессоры явно
         self.encoder = OneHotEncoder(handle_unknown='ignore')
         self.scaler = StandardScaler()
         self.label_encoder = LabelEncoder()
         
-    def preprocess_data(self, df, target_column):
+    def preprocess_data(self, df, target_column=None):
         """Обрабатывает категориальные и числовые признаки."""
-        categorical_cols = df.select_dtypes(include=['object']).columns.drop(target_column)
-        numeric_cols = df.select_dtypes(include=['number']).columns
+        categorical_cols = df.select_dtypes(include=['object']).columns
+        if target_column:
+            categorical_cols = categorical_cols.drop(target_column)
+        categorical_cols = categorical_cols.drop('Mutation_Type', errors='ignore')  # Исключите столбец
         
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        numeric_cols = numeric_cols.drop(['Cancer_Type', 'Mutation_Type'], errors='ignore')
+        # Определение категориальных и числовых столбцов
+        categorical_cols = df.select_dtypes(include=['object']).columns
+        if target_column and target_column in categorical_cols:
+            categorical_cols = categorical_cols.drop(target_column)
+        
+        numeric_cols = df.select_dtypes(include=['number']).columns
+
+        # Обучение encoder и scaler только если есть данные
         if not categorical_cols.empty:
-            X_cat = self.encoder.fit_transform(df[categorical_cols]).toarray()
+            if not hasattr(self.encoder, 'categories_'):
+                # Если encoder не обучен, обучите его
+                self.encoder.fit(df[categorical_cols])
+            X_cat = self.encoder.transform(df[categorical_cols]).toarray()
         else:
             X_cat = np.array([])
-        
-        X_num = self.scaler.fit_transform(df[numeric_cols]) if not numeric_cols.empty else np.array([])
-        
+
+        if not numeric_cols.empty:
+            if not hasattr(self.scaler, 'scale_'):
+                # Если scaler не обучен, обучите его
+                self.scaler.fit(df[numeric_cols])
+            X_num = self.scaler.transform(df[numeric_cols])
+        else:
+            X_num = np.array([])
+
         X = np.hstack([X_num, X_cat]) if X_cat.size else X_num
+
+        # Для прогнозирования возвращаем только X
+        if not target_column:
+            return X, None
+
+        # Обучение label_encoder для целевой переменной
         y = self.label_encoder.fit_transform(df[target_column])
-        
         return train_test_split(X, y, test_size=0.2, random_state=42)
     
     def train(self, X_train, y_train):
@@ -48,10 +75,24 @@ class CancerPredictor:
         return accuracy_score(y_test, y_pred)
     
     def save_model(self, path):
-        """Сохраняет модель."""
-        joblib.dump(self.model, path)
+        """Сохраняет модель с параметрами признаков."""
+        to_dump = {
+            'model': self.model,
+            'encoder': self.encoder,
+            'scaler': self.scaler,
+            'label_encoder': self.label_encoder,
+            'feature_names': list(self.encoder.feature_names_in_) + list(self.scaler.feature_names_in_)
+        }
+        joblib.dump(to_dump, path)
     
     @staticmethod
     def load_model(path):
-        """Загружает модель."""
-        return joblib.load(path)
+        """Загружает модель и препроцессоры."""
+        loaded = joblib.load(path)
+        predictor = CancerPredictor(
+            hidden_layer_sizes=loaded['model'].hidden_layer_sizes,
+            activation=loaded['model'].activation,
+            learning_rate_init=loaded['model'].learning_rate_init
+        )
+        predictor.feature_names = loaded['feature_names']
+        return predictor
