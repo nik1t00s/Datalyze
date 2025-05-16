@@ -221,7 +221,7 @@ class MainApplication:
             )
             X_train, X_test, y_train, y_test = predictor.preprocess_data(
                 self.df, 
-                target_column='Mutation_Type'  # Указываем целевую переменную
+                target_column='Mutation_Type' 
             )
             predictor.train(X_train, y_train)
             accuracy = predictor.evaluate(X_test, y_test)
@@ -233,6 +233,7 @@ class MainApplication:
             print(f"Ошибка: {str(e)}")
 
 
+    # main.py (часть класса MainApplication)
     def _predict_new_data(self):
         if self.df.empty:
             print("Ошибка: данные не загружены!")
@@ -241,63 +242,59 @@ class MainApplication:
         try:
             new_data = {}
             valid_columns = [col for col in self.df.columns 
-            if col not in ['Cancer_Type', 'Mutation_Type']]  # Исключаем только целевые
+                            if col not in ['Cancer_Type', 'Mutation_Type']]  # Исправлено
+
+            # Проверка ожидаемых признаков
+            cancer_predictor = CancerPredictor.load_model("cancer_model.pkl")
+            mutation_predictor = CancerPredictor.load_model("mutation_model.pkl")
+            
+            expected_features = cancer_predictor.feature_names  # Используем сохраненные имена
             
             print("\nВведите значения признаков:")
-            
-            for column in valid_columns:
-                dtype = self.df[column].dtype
-                
+            for feature in expected_features:
                 while True:
                     try:
-                        value = input(f"{column} ({dtype}): ")
+                        value = input(f"{feature}: ").strip()
                         
-                        # Обработка числовых признаков
-                        if np.issubdtype(dtype, np.number):
-                            converted_value = float(value) if '.' in value else int(value)
-                            new_data[column] = [converted_value]
-                        # Обработка категориальных признаков
-                        else:
-                            unique_values = list(map(str, self.df[column].unique()))
+                        # Проверка категориальных значений
+                        if feature in self.df.select_dtypes(include=['object']).columns:
+                            unique_values = list(map(str, self.df[feature].unique()))
                             if value not in unique_values:
                                 print(f"Допустимые значения: {', '.join(unique_values)}")
                                 continue
-                            new_data[column] = [value]
+                                
+                        new_data[feature] = [value]
                         break
                     except ValueError:
-                        print(f"Некорректный формат для {column}. Попробуйте снова.")
+                        print(f"Некорректный формат для {feature}. Попробуйте снова.")
 
-            # Создаем DataFrame только с необходимыми столбцами
-            new_df = pd.DataFrame(new_data)[valid_columns]
-            # Приводим типы данных
-            for col in valid_columns:
+            # Создаем DataFrame и приводим типы
+            new_df = pd.DataFrame(new_data)
+            for col in new_df.columns:
                 new_df[col] = new_df[col].astype(self.df[col].dtype)
+
+            # Прогноз для рака
+            cancer_pred = cancer_predictor.model.predict_proba(
+                cancer_predictor.preprocess_data(new_df)
+            )
             
-            # Загрузка модели
-            predictor = CancerPredictor.load_model("cancer_model.pkl")
-            
-            # Предобработка данных
-            X_processed, _ = predictor.preprocess_data(new_df)
-            
-            # Прогнозирование
-            cancer_proba = predictor.model.predict_proba(X_processed)
-            
-            # Аналогично для мутаций
-            mutation_predictor = CancerPredictor.load_model("mutation_model.pkl")
-            X_mut_processed, _ = mutation_predictor.preprocess_data(new_df)
-            mutation_proba = mutation_predictor.model.predict_proba(X_mut_processed)
-            
-            # Добавление новых данных
+            # Прогноз для мутации
+            mutation_pred = mutation_predictor.model.predict_proba(
+                mutation_predictor.preprocess_data(new_df)
+            )
+
+            # Объединяем результаты
             self.df = pd.concat([self.df, new_df], ignore_index=True)
-            
-            # Вывод результатов
+
             print("\nРезультаты прогноза:")
+            # Вывод результатов для рака
             print("Вероятности типов рака:")
-            for cls, prob in zip(cancer_proba.label_encoder.classes_, cancer_proba[0]):
+            for cls, prob in zip(cancer_predictor.label_encoder.classes_, cancer_pred[0]):
                 print(f"- {cls}: {prob:.2%}")
-                
+
+            # Вывод результатов для мутации
             print("\nВероятности типов мутации:")
-            for cls, prob in zip(mutation_proba.label_encoder.classes_, mutation_proba[0]):
+            for cls, prob in zip(mutation_predictor.label_encoder.classes_, mutation_pred[0]):
                 print(f"- {cls}: {prob:.2%}")
 
         except Exception as e:

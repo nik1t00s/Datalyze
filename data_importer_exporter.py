@@ -168,6 +168,7 @@ class DataImporterExporter:
         Raises:
             Exception: При ошибках сохранения файла
         """
+
         if self.main_app.df.empty:
             print(self.localizer.get_string(10))
             return False, self.main_app.df
@@ -176,6 +177,11 @@ class DataImporterExporter:
             path = input(f"{self.localizer.get_string(34)}: ").strip()
             filename = input(f"{self.localizer.get_string(35)}: ").strip()
             file_format = input(f"{self.localizer.get_string(36)}: ").lower().strip()
+
+            required_columns = ['Mutation_Type', 'Cancer_Type'] + self.main_app.predictor.feature_names
+            if not all(col in self.main_app.df.columns for col in required_columns):
+                print("Отсутствуют обязательные колонки для экспорта!")
+                return False, self.main_app.df
 
             export_path = Path(path) / f"{filename}.{file_format}"
             if not export_path.parent.exists():
@@ -199,5 +205,4 @@ class DataImporterExporter:
             return False, self.main_app.df
         except Exception as e:
             print(f"{self.localizer.get_string(39)}: {str(e)}")
-            return False, self.main_app.df
-        
+            return False, self.main_app.df    

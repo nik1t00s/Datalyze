@@ -92,4 +92,4 @@ if __name__ == "__main__":
 ## 📌 Автор
 
 - ✉️ Email: [nikita.chaika@vk.com]
-- 💻 GitHub: [(https://github.com/nik1t00s)]
+- 💻 GitHub: [https://github.com/nik1t00s]
