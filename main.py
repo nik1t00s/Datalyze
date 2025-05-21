@@ -33,8 +33,8 @@ class MainApplication:
             - Объект локализации
             - Основные компоненты приложения
         """
-        self.df = pd.DataFrame()
         self.localizer = Localizer()
+        self._offer_language_switch()
         self._init_components()
         self._show_welcome()
         self.run()
@@ -57,6 +57,41 @@ class MainApplication:
         except Exception as e:
             print(f"{self.localizer.get_string(14)}: {str(e)}")
             exit(1)
+
+    def _offer_language_switch(self):
+        print(f"\nDetected system language: {self.localizer.language}")
+        choice = input("Change language? (y/N): ").lower()
+        if choice == "y":
+            self._force_language_selection()
+    
+    def _force_language_selection(self):
+        print("\n=== Language Selection ===")
+        print("1. English")
+        print("2. Русский")
+        while True:
+            choice = input("Choose (1-2): ").strip()
+            if choice == "1":
+                self.localizer.language = "ENG"
+                self.localizer._load_localization()
+                break
+            elif choice == "2":
+                self.localizer.language = "RU"
+                self.localizer._load_localization()
+                break
+            print("Invalid choice!")
+
+    def _select_language(self):
+        loc = Localizer("RU") 
+        print("\n" + "="*20)
+        print(loc.get_string(100))
+        print("1. English")
+        print("2. Русский")
+        while True:
+            choice = input(loc.get_string(17) + " (1-2): ").strip()
+            if choice in ("1", "2"):
+                self.language = "ENG" if choice == "1" else "RU"
+                return
+            print(loc.get_string(101))
 
     def _show_welcome(self):
         """Выводит приветственное сообщение при запуске."""
@@ -296,7 +331,6 @@ class MainApplication:
         """Выводит сообщение о завершении работы."""
         print(f"\n{self.localizer.get_string(12)}")
         print(self.localizer.get_string(13))
-
 
 if __name__ == "__main__":
     app = MainApplication()

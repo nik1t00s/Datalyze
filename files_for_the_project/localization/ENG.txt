@@ -1,0 +1,55 @@
+0: Welcome to the system of medical data analysis!
+1: Developers: Sokolov A.V., Kozhemyakin A.A., Shikhanova E.V., Chaika N.V.
+2: Main menu
+5: Exit
+6: Import/Export data
+7: View table
+8: Data visualization
+9: Error: enter number from 0 to 3
+10: Error: data not loaded!
+11: Successfully loaded records: {}
+12: Program operation completed
+13: Thank you for using our software!
+14: Component initialization error
+15: Work was interrupted by user
+16: Critical error
+17: Select menu item
+20: === Data management menu ===
+21: Enter full path to file (CSV/XLSX)
+22: Error: file {} not found
+23: Unsupported file format
+24: Data successfully loaded!
+25: Error reading file
+26: === Upload from Kaggle ===
+27: Example URL: https://www.kaggle.com/datasets/username/dataset-name
+28: Enter dataset URL
+29: Incorrect URL format
+30: Data download is in progress...
+31: No CSV files found in the archive
+32: Data successfully downloaded from Kaggle!
+33: Upload error
+34: Enter path to save
+35: Enter file name (without extension)
+36: Select format (CSV/XLSX)
+37: Unsupported format
+38: File successfully saved: {}
+39: Save error
+40: Missing mandatory columns: {}
+41: === Table menu ===
+42: Total records
+43: Show next records
+44: Filter results
+45: Found records
+46: No condition data
+47: Filter error
+48: === Visualization menu ===
+49: Enter column for X-axis
+50: Enter column for Y-axis
+51: Error: specified columns not found
+52: Error while plotting
+54: Predicting cancer type
+55: Predicting the mutation type
+56: Model accuracy
+57: Model retained
+100: Select language
+101: Invalid input. Try again.

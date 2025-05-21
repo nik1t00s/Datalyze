@@ -13,49 +13,46 @@
 """
 
 from pathlib import Path
-
+import locale
 
 class Localizer:
     def __init__(self):
-        """Инициализирует локализатор.
-
-        Автоматически загружает строки из файла или использует значения по умолчанию.
-        """
+        self.language = self._detect_system_language()
         self.localization = {}
         self._load_localization()
 
+    def _detect_system_language(self):
+        sys_lang = locale.getdefaultlocale()[0]
+        return "ENG" if sys_lang.startswith("en") else "RU"
+
     def _load_localization(self):
-        """Загружает локализацию из файла.
-
-        File Path:
-            files_for_the_project/localization/RU.txt
-
-        Format:
-            ID:Text (one per line)
-
-        Falls back:
-            К значениям по умолчанию при ошибках
-        """
+        base_path = Path("files_for_the_project/localization")
+        lang_files = {
+            "RU": base_path / "RU.txt",
+            "ENG": base_path / "ENG.txt"
+        }
+        
         try:
-            path = Path("files_for_the_project/localization/RU.txt")
+            path = lang_files[self.language]
             with open(path, 'r', encoding='utf-8') as f:
-                lines = [line.strip() for line in f.readlines() if line.strip()]
                 self.localization = {
                     int(line.split(":")[0]): ":".join(line.split(":")[1:]).strip()
-                    for line in lines
+                    for line in f if line.strip()
                 }
         except FileNotFoundError:
-            print("Файл локализации не найден! Используются значения по умолчанию")
-            self._load_default_strings()
-        except Exception as e:
-            print(f"Ошибка загрузки локализации: {str(e)}")
-            self._load_default_strings()
+            print(f"⚠️ Missing {self.language} localization! Using {self._fallback_language}")
+            self.language = self._fallback_language
+            self._load_localization()
 
     def _load_default_strings(self):
         """Устанавливает резервные строки локализации по умолчанию."""
         self.localization = {
             0: "Добро пожаловать в систему анализа медицинских данных!",
         }
+    
+    @property
+    def _fallback_language(self):
+        return "ENG" if self.language == "RU" else "RU"
 
     def get_string(self, string_id: int) -> str:
         """Возвращает локализованную строку по ID.
