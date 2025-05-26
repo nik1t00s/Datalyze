@@ -74,6 +74,23 @@
 218: Cancer type probabilities
 219: Mutation type probabilities
 220: Prediction error
+221: Mortality risk prediction
+222: Creating and training cancer type model...
+223: Creating and training mutation type model...
+224: Creating and training mortality risk model...
+225: Model needs to be created first. Create it now? (y/n)
+226: Using existing model...
+227: Training new model...
+228: Risk of death
+229: Low risk
+230: Medium risk
+231: High risk
+232: Mortality risk probabilities
+233: Creating simulated risk levels for demonstration...
+234: Note: This is simulated data for testing purposes
+235: Using the following factors for risk simulation
+236: Using random distribution for risk simulation
+237: Risk level distribution:
 300: Bar chart
 301: Line chart
 302: Available columns
