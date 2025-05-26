@@ -1,260 +1,122 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import matplotlib as mpl
 import numpy as np
-import matplotlib.ticker as ticker
-import matplotlib.dates as mdates
-from datetime import datetime
+from typing import Union, List, Optional, Tuple
 import warnings
-import os
-import time
+from datetime import datetime
+import matplotlib.dates as mdates
 
 # Ignore matplotlib warnings
-warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
+warnings.filterwarnings("ignore")
 
-# Configure matplotlib
-mpl.rcParams['agg.path.chunksize'] = 10000
-mpl.rcParams['axes.grid'] = True
-mpl.rcParams['grid.alpha'] = 0.3
-mpl.rcParams['figure.autolayout'] = True
-
-class DataFrameVisualizer:
+class DataFrameVisualizer:  # Changed from DataVisualizer to maintain backward compatibility
     def __init__(self, localizer):
-        self.localizer = localizer
-        self._cleanup_figures()
-
-    def show_menu(self, df: pd.DataFrame):
-        while True:
-            print(f"\n{self.localizer.get_string(48)}")
-            print(f"1. {self.localizer.get_string(300)}")
-            print(f"2. {self.localizer.get_string(301)}")
-            print(f"3. {self.localizer.get_string(5)}")
-            try:
-                choice = int(input(f"{self.localizer.get_string(17)}: "))
-                if choice == 1:
-                    self._plot_chart(df, "bar")
-                elif choice == 2:
-                    self._plot_chart(df, "line")
-                else:
-                    return
-            except ValueError:
-                print(self.localizer.get_string(9))
-
-    def _cleanup_figures(self):
-        """Clean up any existing matplotlib figures."""
-        plt.close('all')
+        # Configure matplotlib for better performance
+        plt.style.use('fast')
         
-    def _can_show_interactive(self):
-        """Check if we can show interactive plots."""
-        try:
-            # More thorough check for interactive backend
-            backend = plt.get_backend() if hasattr(plt, 'get_backend') else 'unknown'
-            
-            # Check for non-interactive backends
-            if backend.lower() in ['agg', 'svg', 'pdf', 'ps', 'template']:
-                return False
-                
-            # Check for display availability
-            if not os.environ.get('DISPLAY') and not 'inline' in backend.lower():
-                return False
-                
-            # Check if running over SSH without X forwarding
-            if os.environ.get('SSH_CONNECTION') and not os.environ.get('SSH_ASKPASS'):
-                return False
-                
-            return True
-        except Exception as e:
-            print(f"Display check error: {str(e)}")
+        # Store localizer for internationalization
+        self.localizer = localizer
+        
+        # Performance-oriented defaults
+        self.MAX_POINTS = 1000  # Maximum points to display
+        self.MIN_POINTS = 50    # Minimum points to ensure readable plots
+        self.CATEGORY_LIMIT = 30  # Maximum categories for bar charts
+        
+        # Clean up any existing plots at initialization
+        self._cleanup_figures()
+        
+    def _cleanup_figures(self):
+        """Clean up any existing matplotlib figures and resources."""
+        plt.close('all')
+        plt.clf()  # Clear current figure
+        plt.cla()  # Clear current axes
+        plt.rcParams['figure.figsize'] = plt.rcParamsDefault['figure.figsize']  # Reset figure size
+        import gc
+        gc.collect()  # Force garbage collection
+        
+    def _is_datetime(self, series: pd.Series) -> bool:
+        """Check if series contains datetime data."""
+        return (
+            pd.api.types.is_datetime64_any_dtype(series) or
+            (len(series) > 0 and isinstance(series.iloc[0], (datetime, np.datetime64)))
+        )
+        
+    def _is_date_column(self, series: pd.Series) -> bool:
+        """Check if series can be converted to datetime."""
+        if len(series) == 0:
             return False
             
-    def _generate_filename(self, chart_type, x_col, y_cols):
-        """Generate a unique filename for saving the plot.
-        
-        Args:
-            chart_type: Type of chart ('bar' or 'line')
-            x_col: X-axis column name
-            y_cols: List of Y-axis column names
-            
-        Returns:
-            str: A unique filename based on time, chart type and columns
-        """
-        timestamp = int(time.time())
-        y_str = '_'.join(y_cols) if isinstance(y_cols, list) else y_cols
-        
-        # Clean up column names for filenames
-        x_col = x_col.replace(' ', '_').replace('/', '_')
-        if isinstance(y_str, str):
-            y_str = y_str.replace(' ', '_').replace('/', '_')
-            
-        return f"plot_{chart_type}_{x_col}_{y_str}_{timestamp}.png"
-        
-    def _display_plot(self, chart_type, x_col, y_cols, filename=None):
-        """Display or save the plot based on environment.
-        
-        Args:
-            chart_type: Type of chart ('bar' or 'line')
-            x_col: X-axis column name
-            y_cols: List of Y-axis column names
-            filename: Optional filename to save plot to
-        """
         try:
-            # Check if we can show interactive plots
-            if not self._can_show_interactive():
-                # Non-interactive environment - save to file immediately
-                print("\nNon-interactive environment detected. Saving plot to file...")
-                self._save_plot(chart_type, x_col, y_cols, filename)
-                return
-                
-            # Interactive environment - try to show the plot
-            print(f"\n{self.localizer.get_string(311)}")
-            try:
-                plt.show(block=True)
-            except Exception as e:
-                print(f"Warning: Could not display plot interactively: {str(e)}")
-                self._save_plot(chart_type, x_col, y_cols, filename)
-        finally:
-            # Ensure cleanup happens even if there's an error
-            self._cleanup_figures()
+            pd.to_datetime(series.iloc[0])
+            return True
+        except:
+            return False
             
-    def _save_plot(self, chart_type, x_col, y_cols, filename=None):
-        """Save the plot to a file with better error handling.
+    def _adjust_figure_size(self, x_col: str, y_cols: List[str], n_points: int) -> Tuple[int, int]:
+        """Calculate optimal figure size based on data."""
+        base_width = 12
+        base_height = 6
+        
+        if n_points > 100:
+            base_width = min(20, base_width * (1 + np.log10(n_points/100)))
+            
+        if len(y_cols) > 2:
+            base_height *= 1.5
+            
+        return (base_width, base_height)
+        
+    def _validate_data(self, df: pd.DataFrame, x_col: str, y_cols: List[str]) -> None:
+        """Validate input data before plotting.
         
         Args:
-            chart_type: Type of chart ('bar' or 'line')
+            df: Input DataFrame
             x_col: X-axis column name
-            y_cols: List of Y-axis column names
-            filename: Optional filename to save plot to
+            y_cols: Y-axis column names
             
-        Returns:
-            bool: True if plot was saved successfully, False otherwise
+        Raises:
+            ValueError: If validation fails
         """
-        try:
-            if filename is None:
-                filename = self._generate_filename(chart_type, x_col, y_cols)
-                
-            plt.savefig(filename, dpi=300, bbox_inches='tight')
-            print(f"\nPlot saved to: {filename}")
-            return True
-        except Exception as e:
-            print(f"Error saving plot: {str(e)}")
-            try:
-                # Try to save with a simpler filename if there was an error
-                plt.savefig("plot.png")
-                print("Plot saved to: plot.png")
-                return True
-            except:
-                print("Could not save plot to file.")
-                return False
-        finally:
-            self._cleanup_figures()
-        
-    def _is_date_column(self, series):
-        """Check if a column contains date/time data.
-        
-        Args:
-            series: The pandas Series to check
+        # Check for empty DataFrame more efficiently
+        if df.empty:
+            raise ValueError("DataFrame is empty")
             
-        Returns:
-            bool: True if the series contains datetime data
-        """
-        # Check if it's already a datetime type
-        if pd.api.types.is_datetime64_any_dtype(series):
-            return True
+        # Check columns existence without creating new lists
+        missing_cols = set([x_col] + y_cols) - set(df.columns)
+        if missing_cols:
+            raise ValueError(f"Missing columns: {', '.join(missing_cols)}")
             
-        # Try to convert a sample to datetime
-        if len(series) > 0:
-            sample = series.iloc[0]
-            if isinstance(sample, str):
+        # Check for missing values
+        missing_data = df[[x_col] + y_cols].isnull().sum()
+        if missing_data.any():
+            print("\nWarning: Missing values detected:")
+            for col, count in missing_data[missing_data > 0].items():
+                print(f"- {col}: {count} missing values")
+        
+        # Check for data range issues
+        for col in y_cols:
+            if pd.api.types.is_numeric_dtype(df[col]):
+                if df[col].isin([np.inf, -np.inf]).any():
+                    print(f"\nWarning: Infinite values found in column {col}")
+                # Check for very large values that might cause overflow
                 try:
-                    pd.to_datetime(sample)
-                    return True
+                    if (df[col].abs() > 1e308).any():
+                        print(f"\nWarning: Very large values found in column {col}")
                 except:
                     pass
-        return False
-        
-    def _adjust_figure_size(self, x_col, y_cols, data_points):
-        """Determine optimal figure size based on data.
-        
-        Args:
-            x_col: Name of x column
-            y_cols: Y column name(s) - either a string or list of strings
-            data_points: Number of data points
-            
-        Returns:
-            tuple: Width and height in inches
-        """
-        # Start with default size
-        width, height = 12, 6
-        
-        # Normalize y_cols to a list
-        y_cols_list = y_cols if isinstance(y_cols, list) else [y_cols]
-        
-        # Adjust width based on number of data points and label length
-        max_y_label_length = max(len(col) for col in y_cols_list)
-        label_length = max(len(x_col), max_y_label_length)
-        if label_length > 20:
-            width += min(4, label_length / 10)  # Add up to 4 inches for long labels
-            
-        # Add width for multiple y columns
-        if len(y_cols_list) > 1:
-            width += min(8, len(y_cols_list))  # Add space for multiple columns
-            
-        # Adjust height if we have many data points
-        if data_points > 100:
-            height += 1
-            
-        return (width, height)
     
-    def _format_axes(self, ax, x_col, y_col, plot_df, chart_type):
-        """Format axes with proper scaling, grids and labels.
+    def _manage_memory(self, df: pd.DataFrame) -> None:
+        """Manage memory for large datasets."""
+        if len(df) > self.MAX_POINTS:
+            import gc
+            # More aggressive memory cleanup
+            gc.collect()
+            # Clear matplotlib cache
+            plt.close('all')
+            # Suggest memory optimization
+            print(f"\nWarning: Large dataset detected ({len(df)} points). Consider reducing data size before plotting.")
         
-        Args:
-            ax: The matplotlib axis to format
-            x_col: Name of x column
-            y_col: Name of y column
-            plot_df: DataFrame with data
-            chart_type: Type of chart ('bar' or 'line')
-        """
-        # Add gridlines
-        ax.grid(True, which='major', linestyle='-', linewidth=0.5, alpha=0.7)
-        ax.grid(True, which='minor', linestyle=':', linewidth=0.5, alpha=0.4)
-        ax.minorticks_on()
-        
-        # Format y-axis with thousands separator for numeric columns
-        if pd.api.types.is_numeric_dtype(plot_df[y_col]):
-            ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))
-            
-        # Handle date columns on x-axis
-        is_date_x = self._is_date_column(plot_df[x_col])
-        if is_date_x:
-            # Convert to datetime if it isn't already
-            if not pd.api.types.is_datetime64_any_dtype(plot_df[x_col]):
-                plot_df[x_col] = pd.to_datetime(plot_df[x_col], errors='coerce')
-                
-            # Format date ticks appropriately
-            date_formatter = mdates.DateFormatter('%Y-%m-%d')
-            ax.xaxis.set_major_formatter(date_formatter)
-            
-            # Rotate date labels for better readability
-            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        elif chart_type == 'bar' or len(plot_df[x_col].astype(str).str.len().max()) > 5:
-            # Rotate x labels if they're long (for bar charts or long string labels)
-            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-            
-        # Add some padding to avoid cutting off labels
-        plt.tight_layout(pad=2.0)
-        
-        # Make sure tick labels don't overlap
-        fig = plt.gcf()
-        fig.canvas.draw()
-        if chart_type == 'bar':
-            # Adjust figure size if x-tick labels are too crowded
-            labels = [label.get_text() for label in ax.get_xticklabels()]
-            if len(labels) > 10:
-                fig = plt.gcf()
-                fig.set_size_inches(fig.get_size_inches()[0] * 1.2, fig.get_size_inches()[1])
-                
-    def create_plot(self, df, x_col, y_cols, chart_type):
+    def create_plot(self, df: pd.DataFrame, x_col: str, y_cols: Union[str, List[str]], 
+                   chart_type: str, sample_size: Optional[int] = None) -> None:
         """Create a plot without user interaction.
         
         Args:
@@ -262,150 +124,353 @@ class DataFrameVisualizer:
             x_col: X-axis column name
             y_cols: Y-axis column name(s), string or list
             chart_type: Type of chart to plot ('bar' or 'line')
+            sample_size: Optional custom sample size
         """
+        # Validate inputs
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("Input must be a pandas DataFrame")
+        if not isinstance(chart_type, str):
+            raise ValueError("chart_type must be a string")
+        if chart_type.lower() not in ['line', 'bar']:
+            raise ValueError("chart_type must be 'line' or 'bar'")
+            
         # Handle single column as string or multiple columns as list
         if isinstance(y_cols, str):
             y_cols = [y_cols]
-            
-        self._plot_chart(df, chart_type, x_col, y_cols)
         
-    def _plot_chart(self, df: pd.DataFrame, chart_type: str, preset_x_col=None, preset_y_cols=None):
-        """Plot a chart based on user input columns or preset values.
+        # Manage memory for large datasets
+        self._manage_memory(df)
+        
+        # For very large datasets, only keep required columns
+        if len(df) > self.MAX_POINTS:
+            required_cols = [x_col] + (y_cols if isinstance(y_cols, list) else [y_cols])
+            df = df[required_cols].copy(deep=False)
+        
+        try:
+            # Clean up any existing plots
+            self._cleanup_figures()
+            
+            # Plot the chart
+            self._plot_chart(df, chart_type.lower(), x_col, y_cols, sample_size)
+            
+        except Exception as e:
+            print(f"Error creating plot: {str(e)}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            # More thorough cleanup
+            plt.close('all')
+            import gc
+            gc.collect()
+            
+    def show_menu(self, df: pd.DataFrame) -> None:
+        """Show visualization menu and handle user interaction.
+        
+        Args:
+            df: DataFrame to visualize
+        """
+        while True:
+            print(f"\n=== {self.localizer.get_string(8)} ===")  # Data Visualization
+            print(f"1 - {self.localizer.get_string(300)}")  # Bar chart
+            print(f"2 - {self.localizer.get_string(301)}")  # Line chart
+            print(f"0 - {self.localizer.get_string(5)}")  # Return to main menu
+            
+            try:
+                choice = input(f"\n{self.localizer.get_string(17)}: ")  # Enter your choice
+                
+                if choice == "0":
+                    break
+                elif choice in ["1", "2"]:
+                    # Show available columns
+                    print(f"\n{self.localizer.get_string(302)}: {', '.join(df.columns)}")
+                    
+                    try:
+                        # Get x-axis column
+                        x_col = input(f"{self.localizer.get_string(49)}: ").strip()
+                        
+                        # Get y-axis column(s)
+                        y_cols_input = input(f"{self.localizer.get_string(50)}: ").strip()
+                        y_cols = [col.strip() for col in y_cols_input.split(',')]
+                        
+                        # Set chart type based on choice
+                        chart_type = "bar" if choice == "1" else "line"
+                        
+                        # Call create_plot instead of _plot_chart to ensure proper memory management
+                        self.create_plot(df, x_col, y_cols, chart_type)
+                        
+                    except ValueError as e:
+                        print(f"\n{self.localizer.get_string(51)}: {str(e)}")
+                        if "must be 'line' or 'bar'" in str(e):
+                            print("\nTip: Use 1 for bar chart or 2 for line chart")
+                    except Exception as e:
+                        error_msg = str(e)
+                        if "could not convert" in error_msg.lower():
+                            print(f"\n{self.localizer.get_string(52)}: Invalid data type for selected columns")
+                        else:
+                            print(f"\n{self.localizer.get_string(52)}: {error_msg}")
+                else:
+                    print(self.localizer.get_string(9))  # Invalid choice
+                    
+            except KeyboardInterrupt:
+                print(f"\n{self.localizer.get_string(15)}")  # Operation cancelled
+                break
+            except Exception as e:
+                print(f"\n{self.localizer.get_string(16)}: {str(e)}")  # Error occurred
+        
+    def _optimize_data(self, data: pd.DataFrame, x: str, y_cols: List[str], 
+                      n_points: int) -> pd.DataFrame:
+        """Optimize dataset size while preserving important patterns.
+        
+        Args:
+            data: Input DataFrame
+            x: X-axis column
+            y_cols: Y-axis columns
+            n_points: Target number of points
+            
+        Returns:
+            Optimized DataFrame
+        """
+        # Only copy required columns to save memory
+        df = data[[x] + y_cols].copy(deep=False)
+        
+        # Handle datetime x-axis
+        if self._is_datetime(df[x]):
+            df[x] = pd.to_datetime(df[x])
+            # Remove NaT values
+            df = df.dropna(subset=[x])
+            # Sort by time
+            df = df.sort_values(x)
+            
+            # Ensure non-empty dataset
+            if len(df) == 0:
+                raise ValueError(f"No valid datetime values found in column '{x}'")
+            
+            # Use dynamic binning for time series
+            bins = pd.date_range(
+                start=df[x].min(),
+                end=df[x].max(),
+                periods=n_points
+            )
+            
+            # Use pd.cut for more efficient binning
+            df['bin'] = pd.cut(df[x], bins=bins)
+            
+            # Aggregate using groupby once instead of loop
+            agg_dict = {col: 'mean' for col in y_cols}
+            agg_dict[x] = lambda x: x.iloc[0]  # Take first timestamp in bin
+            
+            # This vectorized approach is more memory-efficient than looping
+            result = df.groupby('bin').agg(agg_dict).reset_index(drop=True)
+            result = result.sort_values(x)
+            
+            return result
+            
+        # Handle numeric x-axis
+        elif pd.api.types.is_numeric_dtype(df[x]):
+            # Handle infinite values
+            df = df.replace([np.inf, -np.inf], np.nan)
+            df = df.dropna(subset=[x] + y_cols)
+            
+            if len(df) == 0:
+                raise ValueError(f"No valid numeric values found after removing infinites and NaNs")
+                
+            # Use quantile-based sampling for better distribution
+            quantiles = np.linspace(0, 1, n_points)
+            indices = []
+            
+            for q in quantiles:
+                q_val = df[x].quantile(q)
+                idx = (df[x] - q_val).abs().idxmin()
+                indices.append(idx)
+                
+            return df.loc[indices].sort_values(x)
+            
+        # Handle categorical x-axis
+        else:
+            # Group by x and aggregate y values
+            agg_dict = {col: 'mean' for col in y_cols}
+            
+            if len(df) > self.MAX_POINTS:
+                # For large categorical datasets, pre-aggregate before groupby
+                # This can significantly improve performance
+                print(f"\nOptimizing large categorical dataset with {len(df)} rows")
+            
+            return df.groupby(x).agg(agg_dict).reset_index()
+            
+    def _plot_chart(self, df: pd.DataFrame, chart_type: str, x_col: str, 
+                   y_cols: List[str], sample_size: Optional[int] = None) -> None:
+        """Plot a chart with optimized data handling.
         
         Args:
             df: DataFrame containing data to plot
             chart_type: Type of chart to plot ('bar' or 'line')
-            preset_x_col: Optional preset X column (for automated testing)
-            preset_y_cols: Optional preset Y column(s) (for automated testing)
+            x_col: X-axis column name
+            y_cols: Y-axis column name(s)
+            sample_size: Optional custom sample size
         """
-        self._cleanup_figures()
-        print(f"\n{self.localizer.get_string(302)}: {', '.join(df.columns)}")
-        
         try:
-            # Use preset values if provided (for automated testing)
-            if preset_x_col and preset_y_cols:
-                x_col = preset_x_col
-                y_cols = preset_y_cols if isinstance(preset_y_cols, list) else [preset_y_cols]
-                print(f"Using preset columns - X: {x_col}, Y: {', '.join(y_cols)}")
-            else:
-                # Get column selections from user
-                x_col = input(f"{self.localizer.get_string(49)}: ").strip()
-                y_col = input(f"{self.localizer.get_string(50)}: ").strip()
+            # Validate input data
+            self._validate_data(df, x_col, y_cols)
+            
+            # Validate chart type
+            if chart_type.lower() not in ['line', 'bar']:
+                raise ValueError(f"Unsupported chart type: {chart_type}")
+            
+            # Add performance warning for very large datasets
+            if len(df) * len(y_cols) > 1_000_000:
+                try:
+                    memory_mb = df.memory_usage(deep=True).sum() / 1024 / 1024
+                    print(f"\nWarning: Large dataset detected ({memory_mb:.1f} MB). "
+                          f"Plotting {len(df):,} points may take longer than usual.")
+                except:
+                    print("\nWarning: Very large dataset detected. Plotting may take longer than usual.")
                 
-                # Support multiple y-columns (comma-separated)
-                y_cols = [col.strip() for col in y_col.split(',')]
+            # Create a copy for data manipulation (shallow copy to save memory)
+            plot_df = df.copy(deep=False)  # Shallow copy is sufficient here
+            sampling_info = ""
             
-            # Validate column existence
-            all_cols = [x_col] + y_cols
-            missing_cols = [col for col in all_cols if col not in df.columns]
-            if missing_cols:
-                print(self.localizer.get_string(51))
-                print(f"Missing columns: {', '.join(missing_cols)}")
-                return
-            
-            # Create a copy to avoid modifying the original dataframe
-            plot_df = df.copy()
-            
-            # Line chart specific validations and preparations
+            # Process data based on chart type
             if chart_type == "line":
-                # Validate y-axis columns are numeric
+                # Validate numeric y columns
                 non_numeric_cols = [col for col in y_cols if not pd.api.types.is_numeric_dtype(plot_df[col])]
                 if non_numeric_cols:
                     print(self.localizer.get_string(303))
                     print(f"Non-numeric columns: {', '.join(non_numeric_cols)}")
                     return
-                
-                # Validate x-axis can be sorted properly
-                try:
-                    # Check if x column is date-like
-                    is_date_x = self._is_date_column(plot_df[x_col])
                     
-                    if is_date_x:
-                        # Convert to datetime for proper sorting
+                # Check for non-finite values
+                for col in y_cols:
+                    non_finite = pd.isna(plot_df[col]) | np.isinf(plot_df[col])
+                    if non_finite.any():
+                        print(f"\nWarning: {non_finite.sum()} non-finite values found in {col}. Removing them.")
+                        plot_df = plot_df[~non_finite]
+                
+                # Handle x-axis data type
+                if self._is_datetime(plot_df[x_col]) or self._is_date_column(plot_df[x_col]):
+                    try:
                         plot_df[x_col] = pd.to_datetime(plot_df[x_col], errors='coerce')
-                    elif not pd.api.types.is_numeric_dtype(plot_df[x_col]):
-                        # Try to convert to numeric if possible (for better sorting)
-                        try:
-                            plot_df[x_col] = pd.to_numeric(plot_df[x_col])
-                        except:
-                            pass
-                    
-                    # Sort by x-axis for better line visualization
-                    plot_df = plot_df.sort_values(by=x_col)
-                    
-                    # Limit data points for performance
-                    if len(plot_df) > 200:
-                        print(self.localizer.get_string(304))
-                        # More intelligent sampling - keep extremes and sample the middle
-                        n_samples = 198  # 198 + 2 endpoints = 200
-                        if pd.api.types.is_numeric_dtype(plot_df[x_col]) or is_date_x:
-                            # Keep min and max points
-                            min_idx = plot_df[x_col].idxmin()
-                            max_idx = plot_df[x_col].idxmax()
-                            endpoints = plot_df.loc[[min_idx, max_idx]]
-                            
-                            # Sample the rest
-                            middle = plot_df.drop([min_idx, max_idx])
-                            if len(middle) > n_samples:
-                                middle = middle.sample(n=n_samples)
-                            
-                            # Combine and resort
-                            plot_df = pd.concat([endpoints, middle])
-                            plot_df = plot_df.sort_values(by=x_col)
-                        else:
-                            plot_df = plot_df.sample(n=200)
-                except Exception as e:
-                    # If sorting fails, just proceed with original data
-                    print(f"Warning: {str(e)}")
-                    plot_df = df.copy()
-                    if len(plot_df) > 200:
-                        plot_df = plot_df.sample(n=200)
-            
-            # Determine optimal figure size
-            fig_width, fig_height = self._adjust_figure_size(x_col, y_cols, len(plot_df))
-            
-            # Create a new figure
-            plt.figure(figsize=(fig_width, fig_height))
-            ax = plt.gca()
-            
-            # Plot based on chart type
-            if chart_type == "bar":
-                if len(y_cols) == 1:
-                    # Single y column
-                    plot_df.plot.bar(x=x_col, y=y_cols[0], ax=ax, rot=0)
-                else:
-                    # Multiple y columns - group them
-                    plot_df.plot.bar(x=x_col, y=y_cols, ax=ax, rot=0)
-            else:
-                if len(y_cols) == 1:
-                    # Single y column line plot
-                    plot_df.plot.line(x=x_col, y=y_cols[0], marker='o', ax=ax)
-                else:
-                    # Multiple y columns - each gets its own line
-                    plot_df.plot.line(x=x_col, y=y_cols, marker='o', ax=ax)
-            
-            # Set title and labels using localized strings
-            if len(y_cols) == 1:
-                plt.title(self.localizer.get_string(307).format(y_cols[0], x_col))
-            else:
-                # Multiple columns - use a generic title
-                cols_str = ', '.join(y_cols)
-                plt.title(self.localizer.get_string(307).format(cols_str, x_col))
+                        # Drop NaT values after conversion
+                        invalid_dates = plot_df[x_col].isna()
+                        if invalid_dates.any():
+                            print(f"\nWarning: {invalid_dates.sum()} invalid dates removed")
+                        plot_df = plot_df.dropna(subset=[x_col])
+                        
+                        # Convert to UTC if timezone-aware
+                        if hasattr(plot_df[x_col].dt, 'tz') and plot_df[x_col].dt.tz is not None:
+                            plot_df[x_col] = plot_df[x_col].dt.tz_convert('UTC')
+                            print("\nNote: Dates converted to UTC")
+                    except Exception as e:
+                        raise ValueError(f"Failed to convert {x_col} to datetime: {str(e)}")
+                elif not pd.api.types.is_numeric_dtype(plot_df[x_col]):
+                    try:
+                        plot_df[x_col] = pd.to_numeric(plot_df[x_col])
+                    except:
+                        pass
                 
-            plt.xlabel(x_col)
+                # Optimize data size
+                if len(plot_df) > self.MAX_POINTS:
+                    n_points = sample_size or self.MAX_POINTS
+                    try:
+                        # Try optimizing with requested sample size
+                        optimized_df = self._optimize_data(plot_df, x_col, y_cols, n_points)
+                        if len(optimized_df) > 0:
+                            plot_df = optimized_df
+                        else:
+                            print(f"\nWarning: Data optimization failed, falling back to first {n_points} points")
+                            plot_df = plot_df.head(n_points)
+                    except Exception as e:
+                        print(f"\nWarning: Data optimization failed ({str(e)}), falling back to first {n_points} points")
+                        plot_df = plot_df.head(n_points)
+                elif sample_size:
+                    # If a specific sample size was requested but data is small enough
+                    try:
+                        plot_df = self._optimize_data(plot_df, x_col, y_cols, sample_size)
+                    except Exception as e:
+                        print(f"\nWarning: Custom sampling failed ({str(e)})")
+                # else: small dataset, no optimization needed
+                
+                if len(plot_df) < len(df):
+                    reduction = 100 * (1 - len(plot_df)/len(df))
+                    sampling_info = f"\nData reduced by {reduction:.1f}%"
+                    print(f"\nWarning: Large dataset detected. {sampling_info}")
+                    
+            else:  # bar chart
+                if plot_df[x_col].nunique() > self.CATEGORY_LIMIT:
+                    # Use more efficient category reduction
+                    # Group and calculate sums once for efficiency
+                    agg_df = plot_df.groupby(x_col)[y_cols].agg('sum')
+                    
+                    # Get top categories based on first y column
+                    top_cats = agg_df[y_cols[0]].nlargest(self.CATEGORY_LIMIT - 1).index
+                    
+                    # Create Others category efficiently
+                    others_sum = agg_df.loc[~agg_df.index.isin(top_cats)].sum()
+                    
+                    # Combine results
+                    plot_df = pd.DataFrame(agg_df.loc[top_cats]).reset_index()
+                    
+                    # Only add Others if there are values to aggregate
+                    if len(agg_df) > len(top_cats):
+                        others_row = pd.DataFrame([others_sum], columns=y_cols)
+                        others_row[x_col] = 'Others'
+                        plot_df = pd.concat([plot_df, others_row])
+                        
+                    reduction = 100 * (1 - len(plot_df[x_col].unique())/len(df[x_col].unique()))
+                    sampling_info = f"\nTop {self.CATEGORY_LIMIT-1} categories + Others"
+                    print(f"\nWarning: Too many categories. {sampling_info}")
             
-            if len(y_cols) == 1:
-                plt.ylabel(y_cols[0])
+            # Create plot
+            fig_width, fig_height = self._adjust_figure_size(x_col, y_cols, len(plot_df))
+            plt.figure(figsize=(fig_width, fig_height))
+            
+            if chart_type == "line":
+                # Set rcParams for faster line plotting
+                with plt.rc_context({'lines.markersize': 2, 'lines.linewidth': 1}):
+                    for col in y_cols:
+                        plt.plot(plot_df[x_col], plot_df[col], marker='.', label=col)
             else:
-                plt.ylabel(', '.join(y_cols))
+                unique_cats = plot_df[x_col].unique()
+                x_pos = np.arange(len(unique_cats))
+                
+                # Adjust width based on number of bars
+                width = min(0.8, 0.8 / len(y_cols))  # Prevent bars from being too wide
+                
+                for i, col in enumerate(y_cols):
+                    offset = (i - len(y_cols)/2 + 0.5) * width
+                    # More efficient aggregation
+                    agg_values = plot_df.groupby(x_col)[col].mean()
+                    values = [agg_values.get(cat, 0) for cat in unique_cats]
+                    
+                    plt.bar(x_pos + offset, values, width, label=col)
+                
+                plt.xticks(x_pos, unique_cats, rotation=45, ha='right')
             
-            # Format axes with proper scaling, grids and labels
-            self._format_axes(ax, x_col, y_cols[0], plot_df, chart_type)
+            # Format plot
+            if sampling_info:
+                title = f"{', '.join(y_cols)} vs {x_col}{sampling_info}"
+            else:
+                title = self.localizer.get_string(307).format(', '.join(y_cols), x_col)
             
-            # Display or save the plot
-            self._display_plot(chart_type, x_col, y_cols)
-            # Cleanup is now handled in _display_plot and _save_plot
+            plt.title(title)
+            plt.xlabel(x_col)
+            plt.ylabel(', '.join(y_cols))
+            plt.grid(True, alpha=0.3)
+            
+            if len(y_cols) > 1:
+                plt.legend()
+                
+            plt.tight_layout()
+            plt.show()
             
         except Exception as e:
             print(f"{self.localizer.get_string(52)}: {str(e)}")
-            self._cleanup_figures()
+            import traceback
+            traceback.print_exc()
+            plt.close('all')  # Ensure figures are closed even on error
+            import gc
+            gc.collect()  # Clean up memory
+            raise
+        finally:
+            plt.close('all')  # More thorough than just plt.close()
+            import gc
+            gc.collect()

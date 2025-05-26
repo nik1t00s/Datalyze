@@ -51,6 +51,7 @@
 55: Predicting the mutation type
 56: Model accuracy
 57: Model retained
+68: View
 100: Select language
 101: Invalid input. Try again.
 200: Neural Networks
