@@ -86,3 +86,8 @@
 404: Error: file was not saved!
 405: Choose action
 406: Error: path '{0}' does not exist!
+307: Graph of {0} vs {1}
+308: Value
+309: Frequency
+310: Invalid data for plotting
+311: Close graph window to continue
