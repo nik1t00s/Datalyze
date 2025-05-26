@@ -53,3 +53,36 @@
 57: Model retained
 100: Select language
 101: Invalid input. Try again.
+200: Neural Networks
+201: Prediction using neural network
+202: Cancer type prediction
+203: Mutation type prediction
+204: Predict on new data
+205: Return
+206: Choose action
+207: Enter hidden layer sizes separated by comma (e.g., 100,50)
+208: Enter activation function (relu, logistic, tanh)
+209: Enter learning rate (e.g., 0.001)
+210: Model accuracy
+211: Model saved to {0}
+212: Error: data not loaded
+213: Error: column '{0}' is missing in the data
+214: Enter feature values
+215: Valid values
+216: Invalid format for {0}. Try again
+217: Prediction results
+218: Cancer type probabilities
+219: Mutation type probabilities
+220: Prediction error
+300: Bar chart
+301: Line chart
+302: Available columns
+303: Error: Y-axis must be numeric
+304: Warning: Data truncated to 200 points for performance
+400: Import from local disk
+401: Import from Kaggle
+402: Export data
+403: Missing required columns for export!
+404: Error: file was not saved!
+405: Choose action
+406: Error: path '{0}' does not exist!

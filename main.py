@@ -59,39 +59,16 @@ class MainApplication:
             exit(1)
 
     def _offer_language_switch(self):
-        print(f"\nDetected system language: {self.localizer.language}")
-        choice = input("Change language? (y/N): ").lower()
-        if choice == "y":
-            self._force_language_selection()
-    
-    def _force_language_selection(self):
-        print("\n=== Language Selection ===")
-        print("1. English")
-        print("2. Русский")
-        while True:
-            choice = input("Choose (1-2): ").strip()
-            if choice == "1":
-                self.localizer.language = "ENG"
-                self.localizer._load_localization()
-                break
-            elif choice == "2":
-                self.localizer.language = "RU"
-                self.localizer._load_localization()
-                break
-            print("Invalid choice!")
-
-    def _select_language(self):
-        loc = Localizer("RU") 
-        print("\n" + "="*20)
-        print(loc.get_string(100))
-        print("1. English")
-        print("2. Русский")
-        while True:
-            choice = input(loc.get_string(17) + " (1-2): ").strip()
-            if choice in ("1", "2"):
-                self.language = "ENG" if choice == "1" else "RU"
-                return
-            print(loc.get_string(101))
+        """Предлагает пользователю сменить язык интерфейса.
+        
+        Использует двуязычный интерфейс для облегчения выбора
+        независимо от текущего языка системы.
+        """
+        print(f"\n=== Language / Язык ===")
+        print(f"Detected system language / Определен язык системы: {self.localizer.language}")
+        choice = input("Change language? / Сменить язык? (y/д/н/n): ").lower()
+        if choice in ["y", "д"]:
+            self.localizer.select_language()
 
     def _show_welcome(self):
         """Выводит приветственное сообщение при запуске."""
@@ -134,7 +111,7 @@ class MainApplication:
         print(f"1 - {self.localizer.get_string(6)}")
         print(f"2 - {self.localizer.get_string(7)}")
         print(f"3 - {self.localizer.get_string(8)}")
-        print(f"4 - Прогнозирование с использованием нейронной сети")
+        print(f"4 - {self.localizer.get_string(201)}")
 
     def _get_user_choice(self) -> int:
         """Получает и валидирует выбор пользователя.
@@ -195,13 +172,13 @@ class MainApplication:
 
     def _handle_neural_network(self):
         """Меню работы с нейронными сетями."""
-        print("\n=== Нейронные сети ===")
-        print("1. Прогнозирование типа рака")
-        print("2. Прогнозирование типа мутации")
-        print("3. Прогнозировать на новых данных")
-        print("4. Вернуться")
+        print(f"\n=== {self.localizer.get_string(200)} ===")
+        print(f"1. {self.localizer.get_string(202)}")
+        print(f"2. {self.localizer.get_string(203)}")
+        print(f"3. {self.localizer.get_string(204)}")
+        print(f"4. {self.localizer.get_string(205)}")
 
-        choice = input("Выберите действие: ")
+        choice = input(f"{self.localizer.get_string(206)}: ")
         if choice == "1":
             self._predict_cancer_type()
         elif choice == "2":
@@ -212,13 +189,13 @@ class MainApplication:
     def _predict_cancer_type(self):
         """Прогнозирует тип рака."""
         if self.df.empty:
-            print("Ошибка: данные не загружены!")
+            print(f"{self.localizer.get_string(212)}")
             return
         
         try:
-            hidden_layers = tuple(map(int, input("Введите размеры скрытых слоёв через запятую (например, 100,50): ").split(',')))
-            activation = input("Введите функцию активации (relu, logistic, tanh): ")
-            learning_rate = float(input("Введите скорость обучения (например, 0.001): "))
+            hidden_layers = tuple(map(int, input(f"{self.localizer.get_string(207)}: ").split(',')))
+            activation = input(f"{self.localizer.get_string(208)}: ")
+            learning_rate = float(input(f"{self.localizer.get_string(209)}: "))
             
             predictor = CancerPredictor(
                 hidden_layer_sizes=hidden_layers,
@@ -228,103 +205,107 @@ class MainApplication:
             X_train, X_test, y_train, y_test = predictor.preprocess_data(self.df, "Cancer_Type")
             predictor.train(X_train, y_train)
             accuracy = predictor.evaluate(X_test, y_test)
-            print(f"\nТочность модели: {accuracy:.2f}")
+            print(f"\n{self.localizer.get_string(210)}: {accuracy:.2f}")
             
-            predictor.save_model("cancer_model.pkl")
-            print("Модель сохранена в cancer_model.pkl")
+            model_file = "cancer_model.pkl"
+            predictor.save_model(model_file)
+            print(self.localizer.get_string(211).format(model_file))
         except Exception as e:
-            print(f"Ошибка: {str(e)}")
+            print(f"{self.localizer.get_string(220)}: {str(e)}")
     def _predict_mutation_type(self):
         """Прогнозирует тип мутации."""
         if self.df.empty:
-            print("Ошибка: данные не загружены!")
+            print(f"{self.localizer.get_string(212)}")
             return
         
-        if 'Mutation_Type' not in self.df.columns:
-            print("Ошибка: столбец 'Mutation_Type' отсутствует в данных!")
+        target_column = 'Mutation_Type'
+        if target_column not in self.df.columns:
+            print(self.localizer.get_string(213).format(target_column))
             return
         
         try:
-            hidden_layers = tuple(map(int, input("Введите размеры скрытых слоёв через запятую (например, 100,50): ").split(',')))
-            activation = input("Введите функцию активации (relu, logistic, tanh): ")
-            learning_rate = float(input("Введите скорость обучения (например, 0.001): "))
+            hidden_layers = tuple(map(int, input(f"{self.localizer.get_string(207)}: ").split(',')))
+            activation = input(f"{self.localizer.get_string(208)}: ")
+            learning_rate = float(input(f"{self.localizer.get_string(209)}: "))
             
             predictor = CancerPredictor(
                 hidden_layer_sizes=hidden_layers,
                 activation=activation,
                 learning_rate_init=learning_rate
             )
-            self.df = self.df.dropna(subset=["Mutation_Type"])
+            self.df = self.df.dropna(subset=[target_column])
             X_train, X_test, y_train, y_test = predictor.preprocess_data(
                 self.df, 
-                target_column='Mutation_Type' 
+                target_column=target_column
             )
             predictor.train(X_train, y_train)
             accuracy = predictor.evaluate(X_test, y_test)
-            print(f"\nТочность модели: {accuracy:.2f}")
+            print(f"\n{self.localizer.get_string(210)}: {accuracy:.2f}")
             
-            predictor.save_model("mutation_model.pkl")
-            print("Модель сохранена в mutation_model.pkl")
+            model_file = "mutation_model.pkl"
+            predictor.save_model(model_file)
+            print(self.localizer.get_string(211).format(model_file))
         except Exception as e:
-            print(f"Ошибка: {str(e)}")
+            print(f"{self.localizer.get_string(220)}: {str(e)}")
 
 
     def _predict_new_data(self):
-            if self.df.empty:
-                print("Ошибка: данные не загружены!")
-                return
+        """Прогнозирует на новых пользовательских данных."""
+        if self.df.empty:
+            print(f"{self.localizer.get_string(212)}")
+            return
 
-            try:
-                new_data = {}
-                valid_columns = [col for col in self.df.columns if col not in ['Cancer_Type', 'Mutation_Type']]
+        try:
+            new_data = {}
+            valid_columns = [col for col in self.df.columns if col not in ['Cancer_Type', 'Mutation_Type']]
 
-                print("\nВведите значения признаков:")
-                for column in valid_columns:
-                    dtype = self.df[column].dtype
-                    while True:
-                        try:
-                            value = input(f"{column} ({dtype}): ")
-                            if np.issubdtype(dtype, np.number):
-                                converted_value = float(value) if '.' in value else int(value)
-                                new_data[column] = [converted_value]
-                            else:
-                                unique_values = list(map(str, self.df[column].unique()))
-                                if value not in unique_values:
-                                    print(f"Допустимые значения: {', '.join(unique_values)}")
-                                    continue
-                                new_data[column] = [value]
-                            break
-                        except ValueError:
-                            print(f"Некорректный формат для {column}. Попробуйте снова.")
+            print(f"\n{self.localizer.get_string(214)}:")
+            for column in valid_columns:
+                dtype = self.df[column].dtype
+                while True:
+                    try:
+                        value = input(f"{column} ({dtype}): ")
+                        if np.issubdtype(dtype, np.number):
+                            converted_value = float(value) if '.' in value else int(value)
+                            new_data[column] = [converted_value]
+                        else:
+                            unique_values = list(map(str, self.df[column].unique()))
+                            if value not in unique_values:
+                                print(f"{self.localizer.get_string(215)}: {', '.join(unique_values)}")
+                                continue
+                            new_data[column] = [value]
+                        break
+                    except ValueError:
+                        print(self.localizer.get_string(216).format(column))
 
-                new_df = pd.DataFrame(new_data)[valid_columns]
-                for col in valid_columns:
-                    new_df[col] = new_df[col].astype(self.df[col].dtype)
+            new_df = pd.DataFrame(new_data)[valid_columns]
+            for col in valid_columns:
+                new_df[col] = new_df[col].astype(self.df[col].dtype)
 
-                predictor = CancerPredictor.load_model("cancer_model.pkl")
-                X_processed, _ = predictor.preprocess_data(new_df)
+            predictor = CancerPredictor.load_model("cancer_model.pkl")
+            X_processed, _ = predictor.preprocess_data(new_df)
 
-                mutation_predictor = CancerPredictor.load_model("mutation_model.pkl")
-                X_mut_processed, _ = mutation_predictor.preprocess_data(new_df)
+            mutation_predictor = CancerPredictor.load_model("mutation_model.pkl")
+            X_mut_processed, _ = mutation_predictor.preprocess_data(new_df)
 
-                cancer_proba = predictor.model.predict_proba(X_processed)
-                mutation_proba = mutation_predictor.model.predict_proba(X_mut_processed)
+            cancer_proba = predictor.model.predict_proba(X_processed)
+            mutation_proba = mutation_predictor.model.predict_proba(X_mut_processed)
 
-                self.df = pd.concat([self.df, new_df], ignore_index=True)
+            self.df = pd.concat([self.df, new_df], ignore_index=True)
 
-                print("\nРезультаты прогноза:")
-                print("Вероятности типов рака:")
-                for cls, prob in zip(predictor.label_encoder.classes_, cancer_proba[0]):
-                    print(f"- {cls}: {prob:.2%}")
+            print(f"\n{self.localizer.get_string(217)}:")
+            print(f"{self.localizer.get_string(218)}:")
+            for cls, prob in zip(predictor.label_encoder.classes_, cancer_proba[0]):
+                print(f"- {cls}: {prob:.2%}")
 
-                print("\nВероятности типов мутации:")
-                for cls, prob in zip(mutation_predictor.label_encoder.classes_, mutation_proba[0]):
-                    print(f"- {cls}: {prob:.2%}")
+            print(f"\n{self.localizer.get_string(219)}:")
+            for cls, prob in zip(mutation_predictor.label_encoder.classes_, mutation_proba[0]):
+                print(f"- {cls}: {prob:.2%}")
 
-            except Exception as e:
-                print(f"Ошибка прогнозирования: {str(e)}")
-                if 'new_df' in locals() and not new_df.empty:
-                    self.df = self.df[:-len(new_df)]
+        except Exception as e:
+            print(f"{self.localizer.get_string(220)}: {str(e)}")
+            if 'new_df' in locals() and not new_df.empty:
+                self.df = self.df[:-len(new_df)]
 
 
     def _exit_application(self):

@@ -51,13 +51,13 @@ class DataImporterExporter:
             4. Вернуться
         """
         print(f"\n{self.localizer.get_string(20)}")
-        print("1. Импорт с локального диска")
-        print("2. Импорт с Kaggle")
-        print("3. Экспорт данных")
-        print("4. Вернуться")
+        print(f"1. {self.localizer.get_string(400)}")
+        print(f"2. {self.localizer.get_string(401)}")
+        print(f"3. {self.localizer.get_string(402)}")
+        print(f"4. {self.localizer.get_string(5)}")
 
         try:
-            choice = int(input("Выберите действие: "))
+            choice = int(input(f"{self.localizer.get_string(405)}: "))
             if choice == 1:
                 return self._local_import()
             elif choice == 2:
@@ -106,7 +106,7 @@ class DataImporterExporter:
                 print(f"{self.localizer.get_string(25)}: {str(e)}")
                 return False, pd.DataFrame()
         except KeyboardInterrupt:
-            print("\nОперация отменена.")
+            print(f"\n{self.localizer.get_string(15)}")
             return False, pd.DataFrame()
 
     def _kaggle_import(self) -> Tuple[bool, pd.DataFrame]:
@@ -180,12 +180,12 @@ class DataImporterExporter:
 
             required_columns = ['Mutation_Type', 'Cancer_Type'] + self.main_app.predictor.feature_names
             if not all(col in self.main_app.df.columns for col in required_columns):
-                print("Отсутствуют обязательные колонки для экспорта!")
+                print(self.localizer.get_string(403))
                 return False, self.main_app.df
 
             export_path = Path(path) / f"{filename}.{file_format}"
             if not export_path.parent.exists():
-                print(f"Ошибка: путь '{export_path.parent}' не существует!")
+                print(self.localizer.get_string(406).format(export_path.parent))
                 return False, self.main_app.df
 
             export_path.parent.mkdir(parents=True, exist_ok=True)
@@ -201,7 +201,7 @@ class DataImporterExporter:
                 print(self.localizer.get_string(38).format(export_path))
                 return True, self.main_app.df
 
-            print("Ошибка: файл не был сохранен!")
+            print(self.localizer.get_string(404))
             return False, self.main_app.df
         except Exception as e:
             print(f"{self.localizer.get_string(39)}: {str(e)}")

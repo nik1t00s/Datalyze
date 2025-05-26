@@ -11,9 +11,9 @@ class DataFrameVisualizer:
     def show_menu(self, df: pd.DataFrame):
         while True:
             print(f"\n{self.localizer.get_string(48)}")
-            print("1. Bar chart")  # Можно заменить на локализованное
-            print("2. Line chart")
-            print("3. " + self.localizer.get_string(5))
+            print(f"1. {self.localizer.get_string(300)}")
+            print(f"2. {self.localizer.get_string(301)}")
+            print(f"3. {self.localizer.get_string(5)}")
             try:
                 choice = int(input(f"{self.localizer.get_string(17)}: "))
                 if choice == 1:
@@ -26,7 +26,7 @@ class DataFrameVisualizer:
                 print(self.localizer.get_string(9))
 
     def _plot_chart(self, df: pd.DataFrame, chart_type: str):
-        print(f"\n{self.localizer.get_string(69)}: {', '.join(df.columns)}")
+        print(f"\n{self.localizer.get_string(302)}: {', '.join(df.columns)}")
         try:
             x_col = input(f"{self.localizer.get_string(49)}: ").strip()
             y_col = input(f"{self.localizer.get_string(50)}: ").strip()
@@ -36,10 +36,10 @@ class DataFrameVisualizer:
 
             if chart_type == "line":
                 if not pd.api.types.is_numeric_dtype(df[y_col]):
-                    print(self.localizer.get_string(53))
+                    print(self.localizer.get_string(303))
                     return
                 if len(df) > 200:
-                    print(self.localizer.get_string(70))
+                    print(self.localizer.get_string(304))
                     df = df.sample(n=200)
 
             plt.figure(figsize=(12, 6))
